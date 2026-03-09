@@ -1,26 +1,27 @@
 <?php
-
-// Asignaturas para profesores PS
-$asignaturas_PS = [
-    ['nombre' => 'DWES', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '8H'],
-    ['nombre' => 'Despliegue', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '4H'],
-    ['nombre' => 'Diseño', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '6H'],
-];
-
-// Asignaturas para profesores PT
-$asignaturas_PT = [
-    ['nombre' => 'DWEC', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '10H'],
-    ['nombre' => 'Sistemas', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '6H'],
-    ['nombre' => 'Bases de Datos', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '4H'],
-];
-
-
-if(isset($_POST['profesor'])){
+// Si se envía el formulario, guardamos la categoría seleccionada
+if (isset($_POST['profesor'])) {
     $categoria = $_POST['profesor'];
-}else{
-    $categoria="(PS)";
+} else {
+    $categoria = "(PS)";
 }
 
+// LAS HORAS QUE TIENE CADA UNO 
+$horas = [
+    "(PS)" => 20,
+    "(PT)" => 16
+];
+
+$horasTener = $horas[$categoria];
+
+// SUMAR HORAS DE LOS MÓDULOS SELECCIONADOS
+$horasSeleccionadas = 0;
+
+if (isset($_POST['modulos'])) {
+    foreach ($_POST['modulos'] as $h) {
+        $horasSeleccionadas += intval($h);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -38,18 +39,18 @@ if(isset($_POST['profesor'])){
 
 <div class="section">
 <label>Profesor</label>
+
 <form method="POST">
     <select name="profesor" onchange="this.form.submit()">
-        <option>--Selecciona una opcion--</option>
-        <option value="PS">Ana (PS)</option>
-        <option value="PT">Juan (PT)</option>
-        <option value="PS">Marta (PS)</option>
+        <option value="(PS)" <?php if($categoria=="(PS)") echo "selected"; ?>>Ana (PS)</option>
+        <option value="(PT)" <?php if($categoria=="(PT)") echo "selected"; ?>>Juan (PT)</option>
+        <option value="(PS)" <?php if($categoria=="(PS)") echo "selected"; ?>>Marta (PS)</option>
     </select>
 </form>
 </div>
 
 <div class="section hours">
-Horas asignadas: 12 / 20
+    Horas asignadas: <?php echo $horasSeleccionadas; ?> / <?php echo $horasTener; ?>
 </div>
 
 <div class="section">
@@ -59,32 +60,20 @@ Horas asignadas: 12 / 20
 
 <form method="POST">
 
-   <?php if($categoria==="PS"){imprimirAsignaturas($asignaturas_PS);}else{imprimirAsignaturas($asignaturas_PT);} ?>
+    <input type="hidden" name="profesor" value="<?php echo $categoria; ?>">
+
+    <input type="checkbox" name="modulos[]" value="8"> DWES - 2º - <?php echo $categoria; ?> - DAW - 8H <br>
+    <input type="checkbox" name="modulos[]" value="4"> Despliegue - 2º - <?php echo $categoria; ?> - DAW - 4H <br>
+    <input type="checkbox" name="modulos[]" value="6"> Diseño - 2º - <?php echo $categoria; ?> - DAW - 6H <br>
+
+    <br>
+    <button type="submit">Asignar módulos</button>
 
 </form>
 
-</div><br>
-
-<button>Asignar módulos</button>
+</div>
 
 </div>
 
 </body>
 </html>
-<?php
-
-function imprimirAsignaturas($asignaturas){
-    foreach($asignaturas as $datos){
-        echo "<input type='checkbox'>";
-        foreach($datos as $valor){
-            if(str_contains($valor,"H")){
-                echo $valor;
-            }else{
-                echo $valor ." - ";
-            }
-        }
-        echo "<br>";
-    }
-}
-
-?>
