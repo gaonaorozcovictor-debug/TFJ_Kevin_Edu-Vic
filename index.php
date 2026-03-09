@@ -1,4 +1,20 @@
 <?php
+
+// Asignaturas para profesores PS
+$asignaturas_PS = [
+    ['nombre' => 'DWES', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '8H'],
+    ['nombre' => 'Despliegue', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '4H'],
+    ['nombre' => 'Diseño', 'curso' => '2º', 'categoria' => '(PS)', 'grado' => 'DAW', 'horas' => '6H'],
+];
+
+// Asignaturas para profesores PT
+$asignaturas_PT = [
+    ['nombre' => 'DWEC', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '10H'],
+    ['nombre' => 'Sistemas', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '6H'],
+    ['nombre' => 'Bases de Datos', 'curso' => '2º', 'categoria' => '(PT)', 'grado' => 'DAW', 'horas' => '4H'],
+];
+
+
 if(isset($_POST['profesor'])){
     $categoria = $_POST['profesor'];
 }else{
@@ -25,11 +41,11 @@ if(isset($_POST['profesor'])){
 <form method="POST">
     <select name="profesor" onchange="this.form.submit()">
         <option>--Selecciona una opcion--</option>
-        <option value="(PS)">Ana (PS)</option>
-        <option value="(PT)">Juan (PT)</option>
-        <option value="(PS)">Marta (PS)</option>
+        <option value="PS">Ana (PS)</option>
+        <option value="PT">Juan (PT)</option>
+        <option value="PS">Marta (PS)</option>
     </select>
-<form>
+</form>
 </div>
 
 <div class="section hours">
@@ -43,9 +59,7 @@ Horas asignadas: 12 / 20
 
 <form method="POST">
 
-    <input type="checkbox"> DWES - 2º - <?php echo $categoria; ?> - DAW - 8H <br>
-    <input type="checkbox"> Despliegue - 2º - <?php echo $categoria; ?> - DAW - 4H <br>
-    <input type="checkbox"> Diseño - 2º - <?php echo $categoria; ?> - DAW - 6H <br>
+   <?php if($categoria==="PS"){imprimirAsignaturas($asignaturas_PS);}else{imprimirAsignaturas($asignaturas_PT);} ?>
 
 </form>
 
@@ -57,3 +71,20 @@ Horas asignadas: 12 / 20
 
 </body>
 </html>
+<?php
+
+function imprimirAsignaturas($asignaturas){
+    foreach($asignaturas as $datos){
+        echo "<input type='checkbox'>";
+        foreach($datos as $valor){
+            if(str_contains($valor,"H")){
+                echo $valor;
+            }else{
+                echo $valor ." - ";
+            }
+        }
+        echo "<br>";
+    }
+}
+
+?>
