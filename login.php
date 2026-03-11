@@ -1,15 +1,32 @@
+<?php
+session_start();
+
+if(isset($_POST['Usuario']) && isset($_POST['contrasena'])){
+
+    $_SESSION['Usuario'] = $_POST['Usuario'];
+    $_SESSION['contrasena'] = $_POST['contrasena'];
+
+    header("Location: Vistas/index1.php");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+    <title>Login</title>
+    <link rel="stylesheet" href="/Vistas/style.css">
+
 <body>
-    <form action="login.php" method="post">
-        <input type="text" name="usuario" placeholder="Usuario">
-        <input type="password" name="password" placeholder="Password">
-        <button type="submit">Login</button>
-    </form>
+
+<form method="post">
+<input type="text" name="Usuario" placeholder="Usuario">
+<br><br>
+<input type="password" name="contrasena" placeholder="Contraseña">
+<br><br>
+<button type="submit">Login</button>
+</form>
+
 </body>
 </html>

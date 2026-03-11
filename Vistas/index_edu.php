@@ -16,21 +16,9 @@ $asignaturas_PT = [
 
 
 if(isset($_POST['profesor'])){
-    $datos=explode("-", $_POST['profesor']);
-    $nombreProf= " para ". $datos[0];
-    $categoria = $datos[1];
+    $categoria = $_POST['profesor'];
 }else{
-    $nombreProf= " ";
-    $categoria="PS";
-}
-
-$horasTotales = 0;
-
-if(isset($_POST['asignarM'])){
-    $horas = $_POST['horas'];
-    foreach($horas as $hora){
-        $horasTotales += $hora;
-    }
+    $categoria="(PS)";
 }
 
 ?>
@@ -53,30 +41,31 @@ if(isset($_POST['asignarM'])){
 <form method="POST">
     <select name="profesor" onchange="this.form.submit()">
         <option>--Selecciona una opcion--</option>
-        <option value="Ana-PS">Ana (PS)</option>
-        <option value="Juan-PT">Juan (PT)</option>
-        <option value="Marta-PS">Marta (PS)</option>
+        <option value="PS">Ana (PS)</option>
+        <option value="PT">Juan (PT)</option>
+        <option value="PS">Marta (PS)</option>
     </select>
 </form>
 </div>
 
 <div class="section hours">
-    Horas asignadas: <?php echo $horasTotales; ?> / 20
+Horas asignadas: 12 / 20
 </div>
 
 <div class="section">
-<label>Módulos disponibles <?php echo $nombreProf; ?></label>
+<label>Módulos disponibles</label>
 
 <div class="modules">
 
 <form method="POST">
 
-    <?php if($categoria==="PS"){imprimirAsignaturas($asignaturas_PS);}else{imprimirAsignaturas($asignaturas_PT);} ?><br>
+   <?php if($categoria==="PS"){imprimirAsignaturas($asignaturas_PS);}else{imprimirAsignaturas($asignaturas_PT);} ?>
 
-    <button type="submit" name="asignarM" >Asignar módulos</button>
 </form>
 
-</div>
+</div><br>
+
+<button>Asignar módulos</button>
 
 </div>
 
@@ -86,10 +75,7 @@ if(isset($_POST['asignarM'])){
 
 function imprimirAsignaturas($asignaturas){
     foreach($asignaturas as $datos){
-
-        $horas=substr($datos['horas'],0,1);
-
-        echo "<input type='checkbox' name='horas[]' value='".$horas."'>";
+        echo "<input type='checkbox'>";
         foreach($datos as $valor){
             if(str_contains($valor,"H")){
                 echo $valor;
@@ -100,7 +86,5 @@ function imprimirAsignaturas($asignaturas){
         echo "<br>";
     }
 }
-
-
 
 ?>
