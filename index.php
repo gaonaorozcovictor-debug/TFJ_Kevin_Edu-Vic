@@ -6,7 +6,7 @@ if(isset($_POST['Usuario']) && isset($_POST['contrasena'])){
     $_SESSION['Usuario'] = $_POST['Usuario'];
     $_SESSION['contrasena'] = $_POST['contrasena'];
 
-    header("Location: Vistas/index1.php");
+    header("Location: Vistas/pagina_principal.php");
     exit();
 }
 ?>
@@ -16,8 +16,8 @@ if(isset($_POST['Usuario']) && isset($_POST['contrasena'])){
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="/Vistas/style.css">
-
+    <link rel="stylesheet" href="./Vistas/style_login.css">
+</head>
 <body>
 
 <form method="post">

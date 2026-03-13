@@ -3,7 +3,7 @@ session_start();
 
 // Redirigir al login si no hay sesión iniciada
 if(!isset($_SESSION['Usuario'])){
-    header("Location: ../login.php");
+    header("Location: ../index.php");
     exit();
 }
 
@@ -65,7 +65,7 @@ function imprimirAsignaturas($asignaturas){
 <head>
 <meta charset="UTF-8">
 <title>Asignación de módulos</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style_index.css">
 </head>
 <body>
 
