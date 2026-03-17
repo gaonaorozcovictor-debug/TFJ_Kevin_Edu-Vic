@@ -1,94 +1,70 @@
 # TFJ_Kevin_Edu-Vic
 Este es nuestro TFG del ciclo de DAW 
 
-INSTALACIÓN Y CONFIGURACIÓN PARA IMPORTAR ARCHIVOS EXCEL EN PHP
-1. Requisitos previos
 
-Tener instalado un servidor local como XAMPP
+🔌 Activación de extensiones PHP
 
-Tener PHP instalado (versión recomendada: PHP 7.4 o superior)
+Para trabajar con archivos Excel es necesario activar ciertas extensiones.
 
-Tener acceso a la terminal (CMD o PowerShell)
-
-2. Instalación de Composer
-
-Para gestionar dependencias en PHP se utiliza Composer.
-
-Pasos:
-
-Acceder a la web oficial:
-https://getcomposer.org/
-
-Descargar el instalador para Windows (Composer-Setup.exe)
-
-Ejecutar el instalador
-
-Cuando lo solicite, seleccionar la ruta del ejecutable de PHP:
-Ejemplo en XAMPP:
-C:\xampp\php\php.exe
-
-Finalizar la instalación
-
-Verificar que Composer está correctamente instalado ejecutando en terminal:
-
-composer -V
-
-3. Activación de extensiones necesarias en PHP
-
-Para poder trabajar con archivos Excel es necesario activar ciertas extensiones de PHP.
-
-Pasos:
-
-Abrir el archivo de configuración php.ini:
-
+1. Editar archivo php.ini
 C:\xampp\php\php.ini
+2. Activar extensiones
 
-Buscar las siguientes líneas:
-
-;extension=gd
-;extension=zip
-
-Eliminar el punto y coma (;) para activarlas:
+Buscar las siguientes líneas y eliminar el ;:
 
 extension=gd
 extension=zip
+3. Reiniciar Apache
 
-Guardar los cambios
+Desde el panel de control de XAMPP.
+🧰 Instalación de Composer
 
-Reiniciar Apache desde el panel de control de XAMPP
+Composer es un gestor de dependencias para PHP.
 
-4. Verificación de extensiones
+1. Descargar Composer
 
-Ejecutar en terminal:
+Desde la web oficial:
+👉 https://getcomposer.org/
 
+2. Instalación
+
+Ejecutar Composer-Setup.exe
+
+Seleccionar la ruta de PHP (ejemplo en XAMPP):
+
+C:\xampp\php\php.exe
+3. Verificación
+composer -V
+
+
+✅ Verificación de extensiones
 php -m
 
-Comprobar que aparecen las extensiones:
+Debe aparecer:
 
 gd
 zip
+📦 Instalación de PhpSpreadsheet
 
-5. Instalación de la librería PhpSpreadsheet
+La librería utilizada para leer archivos Excel es PhpSpreadsheet.
 
-Se utiliza la librería PhpSpreadsheet para leer archivos Excel.
-
-Pasos:
-
-Acceder a la carpeta del proyecto:
-
+1. Acceder al proyecto
 cd C:\xampp\htdocs\nombre_proyecto
-
-Ejecutar el siguiente comando:
-
+2. Instalar dependencia
 composer require phpoffice/phpspreadsheet
+3. Archivos generados
 
-Esto generará:
+vendor/
 
-Carpeta vendor/
+composer.json
 
-Archivo composer.json
+vendor/autoload.php
 
-Archivo autoload.php
+💻 Uso en el código
+
+Incluir el autoload en los archivos PHP:
+
+require 'vendor/autoload.php'
 
 6. Uso de la librería en el proyecto
 
