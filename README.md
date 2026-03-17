@@ -34,7 +34,7 @@ Composer es un gestor de dependencias para PHP.
   C:\xampp\php\php.exe
   
 * 3. Verificación
-  composer -V
+  composer -V (si no va reiniciar terminal)
 
 
 ## ✅ Verificación de extensiones
