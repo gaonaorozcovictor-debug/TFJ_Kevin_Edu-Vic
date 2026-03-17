@@ -2,4 +2,4 @@
 Este es nuestro TFG del ciclo de DAW 
 
 
-ordenene un poco, bebes 
+ordenen un poco, bebes 
