@@ -2,7 +2,7 @@
 Este es nuestro TFG del ciclo de DAW 
 
 
-##🔌 Activación de extensiones PHP
+## 🔌 Activación de extensiones PHP
 
 Para trabajar con archivos Excel es necesario activar ciertas extensiones.
 
