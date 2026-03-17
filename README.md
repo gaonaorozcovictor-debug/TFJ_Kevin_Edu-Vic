@@ -53,12 +53,11 @@ La librería utilizada para leer archivos Excel es PhpSpreadsheet.
 * 2. Instalar dependencia
   composer require phpoffice/phpspreadsheet
 * 3. Archivos generados
-
-vendor/
-
-composer.json
-
-vendor/autoload.php
+    vendor/
+    
+    composer.json
+    
+    vendor/autoload.php
 
 ## 💻 Uso en el código
 
