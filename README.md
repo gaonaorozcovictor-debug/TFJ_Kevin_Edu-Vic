@@ -2,13 +2,13 @@
 Este es nuestro TFG del ciclo de DAW 
 
 
-🔌 Activación de extensiones PHP
+##🔌 Activación de extensiones PHP
 
 Para trabajar con archivos Excel es necesario activar ciertas extensiones.
 
-1. Editar archivo php.ini
+*1. Editar archivo php.ini
 C:\xampp\php\php.ini
-2. Activar extensiones
+*2. Activar extensiones
 
 Buscar las siguientes líneas y eliminar el ;:
 
