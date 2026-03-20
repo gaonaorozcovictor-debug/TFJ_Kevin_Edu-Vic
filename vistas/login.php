@@ -3,76 +3,127 @@ if(session_status() === PHP_SESSION_NONE){
     session_start();
 }
 
+require_once __DIR__ . '/../modelos/Modelo_usuarios.php';
+
+$modelo = new Modelo_usuarios();
+$error = null;
+
 // Procesar login
 if(isset($_POST['login'])){
-    $_SESSION['sesion'] = true;
-    header("Location: ./index.php");
-    exit();
+
+    $usuario = trim($_POST['usuario'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $rolSeleccionado = $_POST['rol'] ?? '';
+
+    $user = $modelo->obtenerPorUsuario($usuario);
+
+    if(!$user){
+        $error = "Usuario no encontrado";
+    }
+    else {
+
+        if($user['rol'] !== $rolSeleccionado){
+            $error = "El rol seleccionado no coincide";
+        }
+        else {
+
+            if($user['rol'] === 'admin'){
+
+                if($user['password'] === $password){
+
+                    $_SESSION['usuario'] = $user['usuario'];
+                    $_SESSION['rol'] = $user['rol'];
+
+                    header("Location: ./index.php");
+                    exit();
+
+                } else {
+                    $error = "Contraseña incorrecta";
+                }
+            }
+
+            else if($user['rol'] === 'profesor'){
+
+                $_SESSION['usuario'] = $user['usuario'];
+                $_SESSION['rol'] = $user['rol'];
+                $_SESSION['profesor_id'] = $user['profesor_id'] ?? null;
+
+                header("Location: ./index.php");
+                exit();
+            }
+        }
+    }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Login</title>
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-orange-50 flex items-center justify-center min-h-screen font-sans">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-<!-- Card Login -->
-<div class="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md border border-orange-100">
-    
-    <h1 class="text-3xl md:text-4xl font-extrabold text-orange-600 text-center mb-8">
-        Iniciar Sesión
-    </h1>
+<div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md border border-gray-200">
 
-    <form method="post" class="space-y-6">
+    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
+        Iniciar sesión
+    </h2>
 
-        <!-- Usuario -->
+    <p class="text-sm text-gray-500 text-center mb-6">
+        Usuario: admin <br>
+        Contraseña: 1234
+    </p>
+
+    <!-- ERROR -->
+    <?php if($error): ?>
+        <div class="bg-red-100 text-red-600 p-3 mb-4 rounded text-sm text-center">
+            <?= $error ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="POST" class="space-y-4">
+
+        <!-- USUARIO -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
                 Usuario
             </label>
-            <input 
-                type="text" 
-                name="usuario" 
-                placeholder="Introduce tu usuario" 
-                required
-                class="w-full border border-orange-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
-            >
+            <input type="text" name="usuario" required
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
         </div>
 
-        <!-- Contraseña (opcional para futuras mejoras) -->
+        <!-- PASSWORD -->
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
                 Contraseña
             </label>
-            <input 
-                type="password" 
-                name="password" 
-                placeholder="Introduce tu contraseña" 
-                required
-                class="w-full border border-orange-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition"
-            >
+            <input type="password" name="password" required
+                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
         </div>
 
-        <!-- Botón -->
-        <button 
-            type="submit" 
-            name="login"
-            class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl shadow-md transition-all transform hover:-translate-y-0.5 hover:shadow-lg"
-        >
+        <!-- ROL -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                Rol
+            </label>
+            <select name="rol" required
+                class="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <option value="">Selecciona un rol</option>
+                <option value="admin">Admin</option>
+                <option value="profesor">Profesor</option>
+            </select>
+        </div>
+
+        <!-- BOTÓN -->
+        <button type="submit" name="login"
+            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-semibold transition">
             Entrar
         </button>
 
     </form>
-
-    <!-- Footer opcional -->
-    <p class="mt-6 text-center text-sm text-gray-500">
-        &copy; 2026 IES Ciudad Escolar. KEV.
-    </p>
 
 </div>
 

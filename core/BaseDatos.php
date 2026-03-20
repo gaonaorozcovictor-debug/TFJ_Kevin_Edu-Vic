@@ -3,7 +3,7 @@ class BaseDatos {
     private $host = "localhost";
     private $user = "root";
     private $pass = "";
-    private $db = "gestion_modulos";
+    private $db = "tfg_instituto";
     public $conn;
 
     public function __construct() {
