@@ -1,93 +1,217 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: index.php?vista=login");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Asignar Módulos</title>
 <script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-.drag-item { cursor: grab; }
-.drag-item:active { cursor: grabbing; }
-</style>
-
 </head>
 
-<body class="bg-gray-100 p-6">
+<body class="bg-gray-100 min-h-screen">
 
-<h1 class="text-3xl font-bold mb-6">Asignar Módulos</h1>
+<!-- HEADER -->
+<div class="bg-white shadow-md px-6 py-4 flex justify-between items-center border-b-4 border-orange-400">
 
-<div class="flex gap-6">
-
-    <!-- Módulos disponibles -->
-    <div class="flex-1 bg-white p-4 rounded shadow">
-        <h2 class="font-bold mb-4">Disponibles</h2>
-
-        <?php foreach($modulos as $modulo): ?>
-            <?php if($modulo['profesor_id'] === null): ?>
-                <div class="drag-item bg-orange-200 p-2 mb-2 rounded"
-                     draggable="true"
-                     data-id="<?= $modulo['id'] ?>">
-                    <?= $modulo['grado'] . " - " . $modulo['modulo'] ?>
-                </div>
-            <?php endif; ?>
-        <?php endforeach; ?>
+    <div class="text-gray-700 font-semibold">
+        Bienvenido, <span class="text-orange-500"><?= $_SESSION['nombre'] ?? 'Usuario' ?></span>
     </div>
 
-    <!-- Zona del profesor -->
-    <div class="flex-1 bg-white p-4 rounded shadow">
-        <h2 class="font-bold mb-4">Tus módulos</h2>
+    <form action="./core/cerrar_sesion.php" method="post">
+        <button type="submit" 
+            class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition">
+            Cerrar sesión
+        </button>
+    </form>
 
-        <div class="dropzone border-2 border-dashed p-4 min-h-[200px]"
-             data-profesor-id="<?= $_SESSION['profesor_id'] ?>">
+</div>
+
+<div class="p-6">
+
+    <h1 class="text-3xl font-bold mb-8 text-gray-800">
+        Asignación de módulos
+    </h1>
+
+    <div class="flex gap-6">
+
+        <!-- MÓDULOS DISPONIBLES -->
+        <div class="flex-1 bg-white p-5 rounded-xl shadow-md border border-gray-200">
+
+            <h2 class="text-xl font-semibold mb-4 text-orange-500">
+                Módulos disponibles
+            </h2>
+
+            <!-- BUSCADOR -->
+            <input type="text" id="buscador" placeholder="Buscar módulo..."
+                   class="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400">
+
+            <!-- LISTA -->
+            <div id="listaModulos" class="space-y-2 max-h-[500px] overflow-auto">
+
+                <?php foreach($modulos as $modulo): ?>
+
+                    <?php if($modulo['profesor_id'] === null): ?>
+
+                        <div class="modulo-item bg-orange-100 hover:bg-orange-200 p-3 rounded-lg shadow-sm flex justify-between items-center transition"
+                             data-id="<?= $modulo['id'] ?>"
+                             data-nombre="<?= $modulo['nombre_modulo'] ?>">
+
+                            <span><?= $modulo['nombre_modulo'] ?></span>
+
+                            <button class="asignar bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm">
+                                Asignar
+                            </button>
+
+                        </div>
+
+                    <?php endif; ?>
+
+                <?php endforeach; ?>
+
+            </div>
+
         </div>
+
+        <!-- ASIGNADOS -->
+        <div class="flex-1 bg-white p-5 rounded-xl shadow-md border border-gray-200">
+
+            <h2 class="text-xl font-semibold mb-4 text-orange-500">
+                Módulos asignados
+            </h2>
+
+            <div class="border-2 border-dashed border-orange-300 bg-orange-50 p-4 min-h-[300px] rounded-lg">
+
+                <div id="asignados" class="space-y-2"></div>
+
+                <p id="mensajeDrop" class="text-gray-500 text-center mt-10">
+                    Usa “Asignar” para añadir módulos
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BOTÓN GUARDAR -->
+    <div class="mt-8 flex justify-end">
+
+        <button id="guardar" 
+            class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg shadow-md transition font-semibold">
+            Guardar cambios
+        </button>
+
     </div>
 
 </div>
 
-<button id="guardar" class="mt-6 bg-green-500 text-white px-4 py-2 rounded">
-Guardar
-</button>
-
 <script>
-const items = document.querySelectorAll('.drag-item');
-const zone = document.querySelector('.dropzone');
 
-items.forEach(item=>{
-    item.addEventListener('dragstart', e=>{
-        e.dataTransfer.setData('id', item.dataset.id);
+const buscador = document.getElementById('buscador');
+const modulos = document.querySelectorAll('.modulo-item');
+const asignados = document.getElementById('asignados');
+const mensaje = document.getElementById('mensajeDrop');
+
+//BUSCADOR
+buscador.addEventListener('input', function () {
+
+    const valor = this.value.toLowerCase();
+
+    modulos.forEach(modulo => {
+
+        const nombre = modulo.dataset.nombre.toLowerCase();
+
+        modulo.style.display = nombre.includes(valor) ? 'flex' : 'none';
+
     });
+
 });
 
-zone.addEventListener('dragover', e=>e.preventDefault());
+//ASIGNAR
+document.querySelectorAll('.asignar').forEach(btn => {
 
-zone.addEventListener('drop', e=>{
-    e.preventDefault();
-    const id = e.dataTransfer.getData('id');
-    const item = document.querySelector(`[data-id='${id}']`);
-    zone.appendChild(item);
+    btn.addEventListener('click', function () {
+
+        const modulo = this.closest('.modulo-item');
+
+        // Crear botón quitar
+        const btnQuitar = document.createElement('button');
+        btnQuitar.textContent = "Quitar";
+        btnQuitar.className = "bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm";
+
+        btnQuitar.addEventListener('click', function () {
+
+            document.getElementById('listaModulos').appendChild(modulo);
+
+            this.remove();
+
+            // volver a añadir botón asignar
+            const btnAsignar = document.createElement('button');
+            btnAsignar.textContent = "Asignar";
+            btnAsignar.className = "asignar bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm";
+
+            btnAsignar.addEventListener('click', function () {
+                asignados.appendChild(modulo);
+            });
+
+            modulo.appendChild(btnAsignar);
+
+            if (asignados.children.length === 0) {
+                mensaje.style.display = 'block';
+            }
+
+        });
+
+        // quitar botón asignar
+        this.remove();
+
+        // añadir botón quitar
+        modulo.appendChild(btnQuitar);
+
+        asignados.appendChild(modulo);
+
+        mensaje.style.display = 'none';
+
+    });
+
 });
 
-document.getElementById('guardar').addEventListener('click', ()=>{
+// GUARDAR
+document.getElementById('guardar').addEventListener('click', () => {
+
     const asignaciones = [];
 
-    zone.querySelectorAll('.drag-item').forEach(item=>{
+    asignados.querySelectorAll('.modulo-item').forEach(item => {
+
         asignaciones.push({
             modulo_id: item.dataset.id,
-            profesor_id: zone.dataset.profesorId
+            profesor_id: <?= $_SESSION['profesor_id'] ?? 'null' ?>
         });
+
     });
 
-    fetch('../controladores/Controlador_asignarMod.php',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+    fetch('../controladores/Controlador_asignarMod.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asignaciones)
     })
-    .then(res=>res.json())
-    .then(data=>{
+    .then(res => res.json())
+    .then(data => {
         alert(data.mensaje);
         location.reload();
     });
+
 });
+
 </script>
 
 </body>

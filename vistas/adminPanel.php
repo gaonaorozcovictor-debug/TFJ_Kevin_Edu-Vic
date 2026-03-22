@@ -1,3 +1,15 @@
+<?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: index.php?vista=login");
+    exit();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,9 +18,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 p-6">
+<body class="bg-gray-100 min-h-screen">
 
-<div class="max-w-7xl mx-auto">
+<div class="w-full px-6 py-6">
 
     <h1 class="text-3xl font-bold mb-6">Panel Administrador</h1>
 
@@ -20,74 +32,85 @@
         <?php unset($_SESSION['mensaje']); ?>
     <?php endif; ?>
 
+    <!-- ERROR -->
+    <?php if(isset($_SESSION['error'])): ?>
+        <div class="bg-red-500 text-white p-4 mb-6 rounded">
+            <?= $_SESSION['error']; ?>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
     <!-- CERRAR SESIÓN -->
     <form action="./core/cerrar_sesion.php" method="post" class="mb-6">
-        <button class="bg-red-500 text-white px-4 py-2 rounded">
+        <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow transition">
             Cerrar sesión
         </button>
     </form>
 
-
-
     <!-- GRID PRINCIPAL -->
-    <div class="grid grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full min-h-[80vh]">
 
-        <!-- ================= PROFESORES ================= -->
+        <!-- PROFESORES -->
         <div class="bg-white p-6 rounded shadow">
 
             <h2 class="text-xl font-bold mb-4">Profesores</h2>
 
-            <!-- SUBIR -->
-<?php if(isset($profesores) && count($profesores) > 0): ?>
+            <!--BLOQUEO SI YA HAY DATOS -->
+            <?php if(isset($profesores) && count($profesores) > 0): ?>
 
-    <p class="text-red-500 mb-4">
-        Ya hay profesores cargados. No puedes subir otro Excel.
-    </p>
-<?php else: ?>
-    <form method="POST" enctype="multipart/form-data" class="mb-4">
-        <input type="file" name="archivo_profesores" required class="mb-3">
+                <p class="text-red-500 mb-4">
+                    Ya hay profesores cargados. No se puede subir otro Excel.
+                </p>
 
-        <button type="submit" name="subir_profesores"
-            class="bg-orange-500 text-white px-4 py-2 rounded">
-            Subir profesores
-        </button>
-    </form>
-<?php endif; ?>
+            <?php else: ?>
+
+                <!-- FORMULARIO SOLO SI NO HAY DATOS -->
+                <form method="POST" enctype="multipart/form-data" class="mb-4">
+                    <input type="file" name="archivo_profesores" required class="mb-3">
+
+                    <button type="submit" name="subir_profesores"
+                        class="bg-orange-500 text-white px-4 py-2 rounded">
+                        Subir profesores
+                    </button>
+                </form>
+
+            <?php endif; ?>
 
             <!-- TABLA -->
             <?php if(isset($profesores) && count($profesores) > 0): ?>
-            <div class="overflow-auto max-h-96">
+
+            <div class="overflow-auto max-h-[60vh]">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-gray-200">
-                            <th class="p-2">ID</th>
+                            <th class="p-2">Orden</th>
                             <th class="p-2">Nombre</th>
                             <th class="p-2">Categoría</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($profesores as $prof): ?>
+                        <?php foreach($profesores as $profesor): ?>
                         <tr class="border-t">
-                            <td class="p-2"><?= $prof['id'] ?></td>
-                            <td class="p-2"><?= $prof['nombre'] ?></td>
-                            <td class="p-2"><?= $prof['categoria'] ?></td>
+                            <td class="p-2"><?= $profesor['orden'] ?></td>
+                            <td class="p-2"><?= $profesor['nombre'] ?></td>
+                            <td class="p-2"><?= $profesor['categoria'] ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
+
             <?php else: ?>
                 <p class="text-gray-500">No hay profesores aún.</p>
             <?php endif; ?>
 
         </div>
 
-        <!-- ================= MÓDULOS ================= -->
-        <div class="bg-white p-6 rounded shadow">
+        <!-- MÓDULOS -->
+        <div class="bg-white p-6 rounded shadow w-full h-full">
 
             <h2 class="text-xl font-bold mb-4">Módulos</h2>
 
-            <!-- SUBIR (SOLO UNA VEZ) -->
             <?php if(isset($modulos) && count($modulos) > 0): ?>
 
                 <p class="text-red-500 mb-4">
@@ -109,11 +132,12 @@
 
             <!-- TABLA -->
             <?php if(isset($modulos) && count($modulos) > 0): ?>
-            <div class="overflow-auto max-h-96">
+
+            <div class="overflow-auto max-h-[60vh]">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-gray-200">
-                            <th class="p-2">ID</th>
+                            <th class="p-2">Orden</th>
                             <th class="p-2">Nombre módulo</th>
                         </tr>
                     </thead>
@@ -127,6 +151,7 @@
                     </tbody>
                 </table>
             </div>
+
             <?php else: ?>
                 <p class="text-gray-500">No hay módulos aún.</p>
             <?php endif; ?>

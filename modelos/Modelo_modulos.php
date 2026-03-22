@@ -11,15 +11,22 @@ public function __construct() {
     }
 }
 
-public function guardarModulo($profesor_id, $nombre_modulo) {
+public function guardarModulo($grado, $curso, $nombre_modulo, $horas, $categoria, $profesor_id = null) {
 
-    $sql = "INSERT INTO modulos (profesor_id, nombre_modulo) VALUES (?, ?)";
+    $sql = "INSERT INTO modulos (grado, curso, nombre_modulo, horas, categoria, profesor_id) 
+            VALUES (?, ?, ?, ?, ?, ?)";
 
     $stmt = $this->conexion->prepare($sql);
 
-    $stmt->bind_param("is", $profesor_id, $nombre_modulo);
+    if(!$stmt) {
+        throw new Exception("Error al preparar la consulta: " . $this->conexion->error);
+    }
 
-    $stmt->execute();
+    $stmt->bind_param("sssisi", $grado, $curso, $nombre_modulo, $horas, $categoria, $profesor_id);
+
+    if(!$stmt->execute()) {
+        throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+    }
 
     $stmt->close();
 }
@@ -37,13 +44,19 @@ public function guardarModulo($profesor_id, $nombre_modulo) {
     return $resultado->fetch_all(MYSQLI_ASSOC);
     }
 
+    
+public function obtenerModulos() {
 
-    public function obtenerModulos() {
-        $resultado = $this->conexion->query("SELECT * FROM modulos");
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+    $resultado = $this->conexion->query("SELECT * FROM modulos");
+
+    if(!$resultado){
+        throw new Exception("Error en la consulta: " . $this->conexion->error);
     }
 
-    // Nuevo método para asignar un profesor a un módulo
+    return $resultado->fetch_all(MYSQLI_ASSOC);
+}
+
+    // este metodo se usa para asignar un profesor a un módulo
     public function asignarProfesor($modulo_id, $profesor_id) {
         $sql = "UPDATE modulos SET profesor_id = ? WHERE id = ?";
         $stmt = $this->conexion->prepare($sql);
