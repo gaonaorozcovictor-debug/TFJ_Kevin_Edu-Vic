@@ -1,4 +1,5 @@
 # TFJ_Kevin_Edu-Vic
+<<<<<<< HEAD
 📋 Resumen del Progreso del Proyecto
 ✅ FUNCIONALIDADES IMPLEMENTADAS HOY
 1. Orden de módulos por ciclo
@@ -50,3 +51,76 @@ Estado actual: La página carga los módulos correctamente pero el dropdown de p
 
 Por hacer: Corregir la comunicación entre el router y la vista para que los profesores se muestren y se pueda completar la asignación.
 
+=======
+Este es nuestro TFG del ciclo de DAW 
+
+
+## 🔌 Activación de extensiones PHP
+
+Para trabajar con archivos Excel es necesario activar ciertas extensiones.
+
+* 1. Editar archivo php.ini
+C:\xampp\php\php.ini
+* 2. Activar extensiones
+
+Buscar las siguientes líneas y eliminar el ;:
+  extension=gd
+  extension=zip
+
+* 3. Reiniciar Apache
+
+## 🧰 Instalación de Composer
+
+Composer es un gestor de dependencias para PHP.
+
+* 1. Descargar Composer
+
+  Desde la web oficial:
+  👉 https://getcomposer.org/
+
+* 2. Instalación
+
+  Ejecutar Composer-Setup.exe
+  
+  Seleccionar la ruta de PHP (ejemplo en XAMPP):
+  
+  C:\xampp\php\php.exe
+  
+* 3. Verificación
+  composer -V (si no va reiniciar terminal)
+
+
+## ✅ Verificación de extensiones
+php -m
+
+Debe aparecer:
+gd
+zip
+
+## 📦 Instalación de PhpSpreadsheet
+
+La librería utilizada para leer archivos Excel es PhpSpreadsheet.
+
+* 1. Acceder al proyecto
+  cd C:\xampp\htdocs\nombre_proyecto
+* 2. Instalar dependencia
+  composer require phpoffice/phpspreadsheet
+* 3. Archivos generados
+    vendor/
+    
+    composer.json
+    
+    vendor/autoload.php
+
+## 💻 Uso en el código
+
+Incluir el autoload en los archivos PHP:
+
+require 'vendor/autoload.php'
+
+6. Uso de la librería en el proyecto
+
+En los archivos PHP donde se vaya a utilizar la librería, añadir:
+
+require 'vendor/autoload.php';
+>>>>>>> 5b7bc574d2ec7e749ae3ceb474b49e06d3eb6748

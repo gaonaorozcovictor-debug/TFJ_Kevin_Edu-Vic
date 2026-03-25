@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+<<<<<<< HEAD
 // EVITAR CACHÉ 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
@@ -72,3 +73,34 @@ switch($vista){
         }
         exit();
 }
+=======
+if(isset($_POST['Usuario']) && isset($_POST['contrasena'])){
+
+    $_SESSION['Usuario'] = $_POST['Usuario'];
+    $_SESSION['contrasena'] = $_POST['contrasena'];
+
+    header("Location: Vistas/pagina_principal.php");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="./Vistas/style_login.css">
+</head>
+<body>
+
+<form method="post">
+<input type="text" name="Usuario" placeholder="Usuario">
+<br><br>
+<input type="password" name="contrasena" placeholder="Contraseña">
+<br><br>
+<button type="submit">Login</button>
+</form>
+
+</body>
+</html>
+>>>>>>> 5b7bc574d2ec7e749ae3ceb474b49e06d3eb6748
