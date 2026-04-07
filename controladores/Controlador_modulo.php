@@ -46,7 +46,7 @@ class Controlador_modulos {
                 if (!isset($_FILES['archivo_profesores']) ||
                     $_FILES['archivo_profesores']['error'] !== UPLOAD_ERR_OK) {
                     $_SESSION['error'] = "No se ha subido correctamente el archivo de profesores";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -54,7 +54,7 @@ class Controlador_modulos {
 
                 if (!file_exists($archivo)) {
                     $_SESSION['error'] = "El archivo de profesores no existe";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -62,7 +62,7 @@ class Controlador_modulos {
 
                 if (empty($datos)) {
                     $_SESSION['error'] = "El Excel de profesores está vacío o mal leído";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -77,7 +77,7 @@ class Controlador_modulos {
                 }
 
                 $_SESSION['mensaje'] = "Profesores subidos correctamente";
-                header("Location: ../index.php?vista=admin");
+                header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                 exit();
             }
 
@@ -87,7 +87,7 @@ class Controlador_modulos {
                 if (!isset($_FILES['archivo_modulos']) ||
                     $_FILES['archivo_modulos']['error'] !== UPLOAD_ERR_OK) {
                     $_SESSION['error'] = "No se ha subido correctamente el archivo de módulos";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -95,7 +95,7 @@ class Controlador_modulos {
 
                 if (!file_exists($archivo)) {
                     $_SESSION['error'] = "El archivo de módulos no existe";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -103,7 +103,7 @@ class Controlador_modulos {
 
                 if (empty($datos)) {
                     $_SESSION['error'] = "El Excel de módulos está vacío o mal leído";
-                    header("Location: ../index.php?vista=admin");
+                    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                     exit();
                 }
 
@@ -118,7 +118,7 @@ class Controlador_modulos {
                 }
 
                 $_SESSION['mensaje'] = "Módulos subidos correctamente";
-                header("Location: ../index.php?vista=admin");
+                header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../index.php?vista=admin'));
                 exit();
             }
 

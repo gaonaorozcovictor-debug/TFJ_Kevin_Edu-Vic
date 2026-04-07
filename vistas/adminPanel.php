@@ -1,5 +1,7 @@
 <?php
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -172,7 +174,7 @@ if (!isset($_SESSION['usuario'])) {
                         <?php foreach($modulos as $modulo): ?>
                         <tr class="border-t">
                             <td class="p-2"><?= $modulo['id'] ?></td>
-                            <td class="p-2"><?= htmlspecialchars($modulo['grado']) ?></td>
+                            <td class="p-2"><?= htmlspecialchars($modulo['grado'] ?? '') ?></td>
                             <td class="p-2"><?= htmlspecialchars($modulo['nombre_modulo']) ?></td>
                             <td class="p-2"><?= $modulo['horas'] ?>h</td>
                             <td class="p-2"><?= $modulo['profesor_nombre'] ?? 'Sin asignar' ?></td>
