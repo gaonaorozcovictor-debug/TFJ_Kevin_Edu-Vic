@@ -4,7 +4,7 @@ class Modelo_profesores {
     private $conexion;
 
     public function __construct() {
-        $this->conexion = new mysqli("localhost", "root", "", "tfg_instituto");
+        $this->conexion = new mysqli("134.0.14.185", "asignaciones", "aplicacion$2026dAw", "asignaciones");
 
         if ($this->conexion->connect_error) {
             die("Error de conexión: " . $this->conexion->connect_error);
