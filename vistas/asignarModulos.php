@@ -14,9 +14,8 @@ $modeloProfesores = new Modelo_profesores();
 
 $profesoresConHoras = $modeloModulos->obtenerTodosProfesoresConHoras();
 $profesores = $modeloProfesores->obtenerProfesores();
-$modulos = $modeloModulos->obtenerModulos();
+$modulos = $modeloModulos->obtenerModulosConProfesor(); // Esto ya trae profesor_nombre
 
-// Obtener el primer profesor para seleccionarlo por defecto
 $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
 ?>
 <!DOCTYPE html>
@@ -27,11 +26,22 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
     .drag-over { background-color: #fed7aa !important; border: 2px dashed #f97316 !important; }
-    .module-dragging { opacity: 0.5; }
-    .dropzone { transition: all 0.2s; }
+    .module-dragging { opacity: 0.4 !important; }
+    .dropzone { transition: all 0.2s; min-height: 300px; }
+    .modulo-item { cursor: grab; transition: all 0.2s; user-select: none; }
+    .modulo-item:active { cursor: grabbing; }
+    .badge-asignado {
+        background-color: #ef4444;
+        color: white;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 9999px;
+        margin-left: 0.5rem;
+        display: inline-block;
+    }
 </style>
 </head>
-<body class="bg-gray-100 min-h-screen" data-primer-profesor="<?= $primerProfesor ? $primerProfesor['orden'] : '' ?>">
+<body class="bg-gray-100 min-h-screen">
 
 <!-- HEADER -->
 <div class="bg-white shadow-md px-6 py-4 flex justify-between items-center border-b-4 border-orange-400">
@@ -76,8 +86,8 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
                     <option value="">-- Selecciona un profesor --</option>
                     <?php foreach($profesoresConHoras as $p): ?>
                         <option value="<?= $p['orden'] ?>" 
-                                data-categoria="<?= htmlspecialchars($p['categoria']) ?>"
                                 data-horas="<?= $p['total_horas'] ?>"
+                                data-nombre="<?= htmlspecialchars($p['nombre']) ?>"
                                 <?= ($primerProfesor && $primerProfesor['orden'] == $p['orden']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($p['nombre']) ?> (<?= $p['categoria'] ?>) - <?= $p['total_horas'] ?>h
                         </option>
@@ -85,7 +95,7 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
                 </select>
             </div>
             <div class="bg-orange-50 border border-orange-200 rounded-lg px-4 py-2 text-sm text-gray-600">
-                Horas totales asignadas: 
+                Horas actuales del profesor: 
                 <span id="horasProfesor" class="font-bold text-orange-600">
                     <?= $primerProfesor ? $primerProfesor['total_horas'] : '0' ?>h
                 </span>
@@ -93,93 +103,67 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
         </div>
     </div>
 
-    <!-- PANEL DE ASIGNACIÓN - SIEMPRE VISIBLE -->
+    <!-- PANEL DE ASIGNACIÓN -->
     <div id="panelAsignacion">
-
-        <p class="text-gray-500 mb-4">2. Asigna módulos al profesor seleccionado</p>
-
         <div class="flex flex-col lg:flex-row gap-6">
 
             <!-- MÓDULOS DISPONIBLES (IZQUIERDA) -->
             <div class="flex-1 bg-white p-5 rounded-xl shadow-md border border-gray-200">
-                <h2 class="text-xl font-semibold mb-4 text-orange-500">📚 Módulos</h2>
+                <h2 class="text-xl font-semibold mb-4 text-orange-500">📚 Módulos disponibles</h2>
                 <input type="text" id="buscador" placeholder="Buscar módulo..."
                        class="w-full p-2 mb-4 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400">
 
                 <div id="listaModulos" class="space-y-2 max-h-[500px] overflow-auto">
                     <?php foreach($modulos as $modulo): ?>
-                        <?php if($modulo['profesor_id'] === null): ?>
-                            <?php
-                                $esPsPt = (stripos($modulo['nombre_modulo'], 'PS') !== false ||
-                                           stripos($modulo['nombre_modulo'], 'PT') !== false);
-                                $colorFondo  = $esPsPt ? 'bg-purple-100 hover:bg-purple-200' : 'bg-orange-100 hover:bg-orange-200';
-                                $borderColor = $esPsPt ? 'border-purple-500' : 'border-orange-500';
-                            ?>
-                            <div class="modulo-item <?= $colorFondo ?> p-3 rounded-lg shadow-sm flex justify-between items-center transition border-l-4 <?= $borderColor ?>"
-                                 data-id="<?= $modulo['id'] ?>"
-                                 data-nombre="<?= htmlspecialchars($modulo['nombre_modulo']) ?>"
-                                 data-grado="<?= htmlspecialchars($modulo['grado']) ?>"
-                                 data-horas="<?= $modulo['horas'] ?>"
-                                 data-categoria="<?= htmlspecialchars($modulo['categoria'] ?? '') ?>"
-                                 data-es-pspt="<?= $esPsPt ? '1' : '0' ?>">
-                                <div class="modulo-info flex-1">
-                                    <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
-                                        <?= htmlspecialchars($modulo['grado']) ?>
+                        <?php
+                            $esPsPt = (stripos($modulo['nombre_modulo'], 'PS') !== false ||
+                                       stripos($modulo['nombre_modulo'], 'PT') !== false);
+                            $colorFondo = $esPsPt ? 'bg-purple-100' : 'bg-orange-100';
+                            $borderColor = $esPsPt ? 'border-purple-500' : 'border-orange-500';
+                            $estaAsignado = $modulo['profesor_id'] !== null;
+                            $profesorAsignado = $modulo['profesor_nombre'] ?? 'Desconocido';
+                        ?>
+                        <div class="modulo-item <?= $colorFondo ?> p-3 rounded-lg shadow-sm flex justify-between items-center transition border-l-4 <?= $borderColor ?>"
+                             data-id="<?= $modulo['id'] ?>"
+                             data-nombre="<?= htmlspecialchars($modulo['nombre_modulo']) ?>"
+                             data-grado="<?= htmlspecialchars($modulo['grado']) ?>"
+                             data-horas="<?= $modulo['horas'] ?>"
+                             data-asignado="<?= $estaAsignado ? '1' : '0' ?>"
+                             data-profesor-asignado="<?= htmlspecialchars($profesorAsignado) ?>"
+                             data-profesor-id="<?= $modulo['profesor_id'] ?? '' ?>">
+                            <div class="modulo-info flex-1">
+                                <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
+                                    <?= htmlspecialchars($modulo['grado']) ?>
+                                </span>
+                                <span class="font-medium ml-2"><?= htmlspecialchars($modulo['nombre_modulo']) ?></span>
+                                <span class="text-sm text-gray-500 ml-1">(<?= $modulo['horas'] ?>h)</span>
+                                <?php if($esPsPt): ?>
+                                    <span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>
+                                <?php endif; ?>
+                                <?php if($estaAsignado): ?>
+                                    <span class="badge-asignado">
+                                        👤 <?= htmlspecialchars($profesorAsignado) ?>
                                     </span>
-                                    <span class="font-medium ml-2"><?= htmlspecialchars($modulo['nombre_modulo']) ?></span>
-                                    <span class="text-sm text-gray-500 ml-1">(<?= $modulo['horas'] ?>h)</span>
-                                    <?php if($esPsPt): ?>
-                                        <span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>
-                                    <?php endif; ?>
-                                </div>
-                                <button class="btn-asignar bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm">
-                                    Asignar →
-                                </button>
+                                <?php endif; ?>
                             </div>
-                        <?php else: ?>
-                            <?php
-                                $esPsPt = (stripos($modulo['nombre_modulo'], 'PS') !== false ||
-                                           stripos($modulo['nombre_modulo'], 'PT') !== false);
-                                $colorFondo  = $esPsPt ? 'bg-purple-100' : 'bg-gray-100';
-                                $borderColor = $esPsPt ? 'border-purple-500' : 'border-gray-400';
-                            ?>
-                            <div class="modulo-item <?= $colorFondo ?> p-3 rounded-lg shadow-sm flex justify-between items-center border-l-4 <?= $borderColor ?> opacity-60"
-                                 data-id="<?= $modulo['id'] ?>"
-                                 data-nombre="<?= htmlspecialchars($modulo['nombre_modulo']) ?>"
-                                 data-grado="<?= htmlspecialchars($modulo['grado']) ?>"
-                                 data-horas="<?= $modulo['horas'] ?>"
-                                 data-categoria="<?= htmlspecialchars($modulo['categoria'] ?? '') ?>"
-                                 data-es-pspt="<?= $esPsPt ? '1' : '0' ?>">
-                                <div class="modulo-info flex-1">
-                                    <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
-                                        <?= htmlspecialchars($modulo['grado']) ?>
-                                    </span>
-                                    <span class="font-medium ml-2"><?= htmlspecialchars($modulo['nombre_modulo']) ?></span>
-                                    <span class="text-sm text-gray-500 ml-1">(<?= $modulo['horas'] ?>h)</span>
-                                    <?php if($esPsPt): ?>
-                                        <span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>
-                                    <?php endif; ?>
-                                    <span class="text-xs text-red-500 ml-2">(Asignado a: <?= htmlspecialchars($modulo['profesor_nombre'] ?? 'otro profesor') ?>)</span>
-                                </div>
-                                <button class="btn-asignar bg-gray-400 cursor-not-allowed text-white px-3 py-1 rounded text-sm" disabled>
-                                    Asignar →
-                                </button>
-                            </div>
-                        <?php endif; ?>
+                            <button class="btn-asignar px-3 py-1 rounded text-sm <?= $estaAsignado ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white' ?>"
+                                    <?= $estaAsignado ? 'disabled' : '' ?>>
+                                <?= $estaAsignado ? '✓ Ocupado' : 'Asignar →' ?>
+                            </button>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>
 
-            <!-- MÓDULOS ASIGNADOS AL PROFESOR (DERECHA - DROPZONE) -->
+            <!-- MÓDULOS ASIGNADOS AL PROFESOR (DERECHA) -->
             <div class="flex-1 bg-white p-5 rounded-xl shadow-md border border-gray-200">
-                <h2 class="text-xl font-semibold mb-2 text-orange-500">📋 Módulos asignados</h2>
+                <h2 class="text-xl font-semibold mb-2 text-orange-500">📋 Módulos de <span id="nombreProfesorActual">este profesor</span></h2>
                 <p class="text-sm text-gray-500 mb-4">
                     Horas acumuladas: <span id="horasAcumuladas" class="font-bold text-orange-600">0h</span>
                 </p>
 
-                <div id="dropzoneAsignados" 
-                     class="dropzone border-2 border-dashed border-orange-300 bg-orange-50 p-4 min-h-[300px] rounded-lg transition">
-                    <div id="asignados" class="space-y-2"></div>
+                <div id="dropzoneAsignados" class="dropzone border-2 border-dashed border-orange-300 bg-orange-50 p-4 rounded-lg transition">
+                    <div id="asignadosContainer" class="space-y-2"></div>
                     <p id="mensajeVacio" class="text-gray-400 text-center mt-10 text-sm">
                         Selecciona un profesor para ver sus módulos
                     </p>
@@ -189,16 +173,16 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
 
         <!-- BOTÓN GUARDAR -->
         <div class="mt-6 flex justify-end">
-            <button id="guardar"
+            <button id="guardarBtn"
                 class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg shadow-md transition font-semibold text-lg">
                 💾 Guardar asignación
             </button>
         </div>
     </div>
 
-    <!-- LISTADO DE PROFESORES AGRUPADOS POR CATEGORÍA -->
+    <!-- LISTADO DE PROFESORES POR CATEGORÍA -->
     <div class="mt-10 bg-white p-5 rounded-xl shadow-md border border-gray-200">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">👨‍🏫 Profesores por categoría</h2>
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">👨‍🏫 Listado de profesores</h2>
         
         <?php 
         $profesoresPorCategoria = [];
@@ -229,11 +213,8 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
                             }
                         ?>
                             <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                <div>
-                                    <span class="font-medium"><?= htmlspecialchars($prof['nombre']) ?></span>
-                                    <span class="text-xs text-gray-500 ml-2">(<?= $horasProf ?>h)</span>
-                                </div>
-                                <span class="text-xs text-gray-400">ID: <?= $prof['orden'] ?></span>
+                                <span class="font-medium"><?= htmlspecialchars($prof['nombre']) ?></span>
+                                <span class="text-xs text-gray-500"><?= $horasProf ?>h asignadas</span>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -245,258 +226,362 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
 </div>
 
 <script>
-// ─── VARIABLES ──────────────────────────────────────────────────────
+// ============================================================
+// VARIABLES
+// ============================================================
 const selectProfesor = document.getElementById('selectProfesor');
-const asignados = document.getElementById('asignados');
+const asignadosContainer = document.getElementById('asignadosContainer');
 const mensajeVacio = document.getElementById('mensajeVacio');
 const horasAcumuladasSpan = document.getElementById('horasAcumuladas');
 const horasProfesorSpan = document.getElementById('horasProfesor');
+const nombreProfesorActualSpan = document.getElementById('nombreProfesorActual');
 const listaModulosDiv = document.getElementById('listaModulos');
 const buscador = document.getElementById('buscador');
 const dropzone = document.getElementById('dropzoneAsignados');
 
-let horasAcumuladasVal = 0;
-let profesorSeleccionado = null;
-let profesorCategoria = null;
-let datosCargados = false;
+let horasAcumuladas = 0;
+let profesorActualId = null;
+let draggedItem = null;
 
-// Guardar referencia a todos los módulos originales
-const todosLosModulos = Array.from(document.querySelectorAll('#listaModulos .modulo-item'));
-
-// ─── FUNCIÓN PARA CARGAR MÓDULOS DEL PROFESOR ───────────────────────
-async function cargarModulosProfesor(profesorId, categoria, horasActuales) {
-    horasProfesorSpan.textContent = horasActuales + 'h';
-    profesorCategoria = categoria;
-    mensajeVacio.textContent = 'Arrastra módulos aquí o usa "Asignar →"';
-
-    // Limpiar asignados
-    asignados.innerHTML = '';
-    horasAcumuladasVal = 0;
+// ============================================================
+// FUNCIÓN: Cargar módulos asignados al profesor
+// ============================================================
+async function cargarModulosAsignados(profesorId, nombreProfesor) {
+    // Limpiar contenedor
+    asignadosContainer.innerHTML = '';
+    horasAcumuladas = 0;
     
-    // Mostrar todos los módulos inicialmente
-    todosLosModulos.forEach(mod => {
-        mod.style.display = 'flex';
-        // Restaurar botones a estado original
-        const btn = mod.querySelector('button');
-        btn.textContent = 'Asignar →';
-        btn.disabled = false;
-        btn.classList.remove('btn-quitar', 'bg-red-500', 'hover:bg-red-600', 'bg-gray-400', 'cursor-not-allowed');
-        btn.classList.add('btn-asignar', 'bg-orange-500', 'hover:bg-orange-600');
-        // Quitar mensajes adicionales
-        const infoSpan = mod.querySelector('.modulo-info');
-        if(infoSpan) {
-            // Eliminar spans añadidos
-            const extraSpans = infoSpan.querySelectorAll('.extra-info');
-            extraSpans.forEach(span => span.remove());
-        }
-        mod.classList.remove('opacity-60');
-    });
-
-    // Traer módulos del profesor desde el servidor
-    const res = await fetch(`/TFG/controladores/Controlador_obtenerModulosProfesor.php?profesor_id=${profesorId}`);
-    const data = await res.json();
-    if (!data.ok) return alert('Error al cargar módulos');
-
-    // Procesar cada módulo
-    data.modulos.forEach(mod => {
-        const moduloElem = todosLosModulos.find(el => parseInt(el.dataset.id) === mod.id);
-        if(!moduloElem) return;
-        
-        if (mod.asignado_a_profe) {
-            // Mover a asignados
-            moduloElem.style.display = 'none';
-            const clon = moduloElem.cloneNode(true);
-            clon.style.display = 'flex';
-            const btn = clon.querySelector('button');
-            btn.textContent = '✕ Quitar';
-            btn.disabled = false;
-            btn.classList.remove('btn-asignar', 'bg-orange-500', 'hover:bg-orange-600');
-            btn.classList.add('btn-quitar', 'bg-red-500', 'hover:bg-red-600');
-            asignados.appendChild(clon);
-            horasAcumuladasVal += parseInt(clon.dataset.horas);
-        } else if (mod.asignado_a_otro) {
-            moduloElem.style.display = 'flex';
-            moduloElem.classList.add('opacity-60');
-            const btn = moduloElem.querySelector('button');
-            btn.disabled = true;
-            btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-            const infoSpan = moduloElem.querySelector('.modulo-info');
-            if(infoSpan && !infoSpan.querySelector('.extra-info')) {
-                const span = document.createElement('span');
-                span.className = 'text-xs text-red-500 ml-2 extra-info';
-                span.textContent = `(Asignado a: ${mod.profesor_nombre || 'otro'})`;
-                infoSpan.appendChild(span);
-            }
-        } else {
-            moduloElem.style.display = 'flex';
-            moduloElem.classList.remove('opacity-60');
-            const categoriaModulo = moduloElem.dataset.categoria || '';
-            const btn = moduloElem.querySelector('button');
-            
-            const esCompatible = (categoriaModulo === profesorCategoria) || 
-                                 (profesorCategoria === 'CATEDRÁTICO' && categoriaModulo !== '') ||
-                                 (profesorCategoria === 'TITULAR' && categoriaModulo !== '');
-            
-            if(!esCompatible && categoriaModulo) {
-                btn.disabled = true;
-                btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-                btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-                const infoSpan = moduloElem.querySelector('.modulo-info');
-                if(infoSpan && !infoSpan.querySelector('.extra-info')) {
-                    const span = document.createElement('span');
-                    span.className = 'text-xs text-gray-400 ml-2 extra-info';
-                    span.textContent = `(Requiere: ${categoriaModulo})`;
-                    infoSpan.appendChild(span);
-                }
-            } else {
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                btn.classList.add('bg-orange-500', 'hover:bg-orange-600');
-            }
-        }
-    });
-    
-    horasAcumuladasSpan.textContent = horasAcumuladasVal + 'h';
-    mensajeVacio.style.display = asignados.children.length === 0 ? 'block' : 'none';
-    datosCargados = true;
-}
-
-// ─── INICIALIZAR CON EL PRIMER PROFESOR ─────────────────────────────
-document.addEventListener('DOMContentLoaded', async function() {
-    const primerProfesorId = document.body.dataset.primerProfesor;
-    if (primerProfesorId && selectProfesor.value) {
-        const option = selectProfesor.options[selectProfesor.selectedIndex];
-        const categoria = option.dataset.categoria;
-        const horas = option.dataset.horas;
-        await cargarModulosProfesor(primerProfesorId, categoria, horas);
-    }
-});
-
-// ─── CAMBIO DE PROFESOR ─────────────────────────────────────────────
-selectProfesor.addEventListener('change', async function () {
-    if (!this.value) {
-        horasProfesorSpan.textContent = '0h';
-        profesorSeleccionado = null;
-        profesorCategoria = null;
-        asignados.innerHTML = '';
-        horasAcumuladasVal = 0;
+    if (!profesorId) {
         horasAcumuladasSpan.textContent = '0h';
         mensajeVacio.textContent = 'Selecciona un profesor para ver sus módulos';
-        todosLosModulos.forEach(mod => {
-            mod.style.display = 'flex';
-        });
+        mensajeVacio.style.display = 'block';
+        nombreProfesorActualSpan.textContent = 'este profesor';
         return;
     }
-
-    const profesorId = this.value;
-    const categoria = this.options[this.selectedIndex].dataset.categoria;
-    const horas = this.options[this.selectedIndex].dataset.horas;
-    await cargarModulosProfesor(profesorId, categoria, horas);
-});
-
-// ─── FUNCIONES DE MOVIMIENTO ───────────────────────────────────────
-function moverAAsignados(modulo, sumarHoras = true) {
-    if(modulo.parentElement && modulo.parentElement.id === 'asignados') return;
-    if(!datosCargados) return;
     
-    const originalMod = todosLosModulos.find(m => parseInt(m.dataset.id) === parseInt(modulo.dataset.id));
-    if(originalMod) originalMod.style.display = 'none';
+    nombreProfesorActualSpan.textContent = nombreProfesor || 'este profesor';
+    mensajeVacio.textContent = 'No tiene módulos asignados';
     
-    const clon = modulo.cloneNode(true);
-    clon.style.display = 'flex';
-    const btn = clon.querySelector('button');
-    btn.textContent = '✕ Quitar';
-    btn.disabled = false;
-    btn.classList.remove('btn-asignar', 'bg-orange-500', 'hover:bg-orange-600');
-    btn.classList.add('btn-quitar', 'bg-red-500', 'hover:bg-red-600');
-    
-    asignados.appendChild(clon);
-    if (sumarHoras) {
-        horasAcumuladasVal += parseInt(clon.dataset.horas);
-        actualizarHoras();
+    try {
+        const res = await fetch(`/TFG/controladores/Controlador_obtenerModulosProfesor.php?profesor_id=${profesorId}`);
+        const data = await res.json();
+        
+        if (!data.ok) {
+            console.error('Error:', data.mensaje);
+            return;
+        }
+        
+        // Filtrar módulos asignados a ESTE profesor
+        const modulosAsignados = data.modulos.filter(mod => mod.asignado_a_profe === true);
+        
+        modulosAsignados.forEach(modulo => {
+            const esPsPt = modulo.nombre_modulo.includes('PS') || modulo.nombre_modulo.includes('PT');
+            const colorFondo = esPsPt ? 'bg-purple-100' : 'bg-orange-100';
+            const borderColor = esPsPt ? 'border-purple-500' : 'border-orange-500';
+            
+            const div = document.createElement('div');
+            div.className = `modulo-item ${colorFondo} p-3 rounded-lg shadow-sm flex justify-between items-center transition border-l-4 ${borderColor}`;
+            div.setAttribute('data-id', modulo.id);
+            div.setAttribute('data-nombre', modulo.nombre_modulo);
+            div.setAttribute('data-grado', modulo.grado);
+            div.setAttribute('data-horas', modulo.horas);
+            div.setAttribute('data-asignado', '0');
+            div.setAttribute('draggable', 'true');
+            
+            div.innerHTML = `
+                <div class="modulo-info flex-1">
+                    <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
+                        ${modulo.grado}
+                    </span>
+                    <span class="font-medium ml-2">${modulo.nombre_modulo}</span>
+                    <span class="text-sm text-gray-500 ml-1">(${modulo.horas}h)</span>
+                    ${esPsPt ? '<span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>' : ''}
+                </div>
+                <button class="btn-quitar bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                    ✕ Quitar
+                </button>
+            `;
+            
+            configurarDragDrop(div);
+            asignadosContainer.appendChild(div);
+            horasAcumuladas += modulo.horas;
+        });
+        
+        horasAcumuladasSpan.textContent = horasAcumuladas + 'h';
+        mensajeVacio.style.display = modulosAsignados.length === 0 ? 'block' : 'none';
+        
+    } catch (error) {
+        console.error('Error:', error);
     }
+}
+
+// ============================================================
+// FUNCIÓN: Mover módulo a asignados (desde izquierda)
+// ============================================================
+function moverAAsignados(modulo) {
+    // Verificar si ya está en asignados
+    if (modulo.parentElement?.id === 'asignadosContainer') return;
+    
+    // Verificar si el módulo ya está asignado a otro profesor
+    if (modulo.dataset.asignado === '1') {
+        return; // Silenciosamente ignorar
+    }
+    
+    const id = modulo.dataset.id;
+    const nombre = modulo.dataset.nombre;
+    const grado = modulo.dataset.grado;
+    const horas = parseInt(modulo.dataset.horas);
+    const esPsPt = modulo.querySelector('.bg-purple-200') !== null;
+    
+    // Ocultar original
+    modulo.style.display = 'none';
+    
+    // Crear clon para asignados
+    const colorFondo = esPsPt ? 'bg-purple-100' : 'bg-orange-100';
+    const borderColor = esPsPt ? 'border-purple-500' : 'border-orange-500';
+    
+    const clon = document.createElement('div');
+    clon.className = `modulo-item ${colorFondo} p-3 rounded-lg shadow-sm flex justify-between items-center transition border-l-4 ${borderColor}`;
+    clon.setAttribute('data-id', id);
+    clon.setAttribute('data-nombre', nombre);
+    clon.setAttribute('data-grado', grado);
+    clon.setAttribute('data-horas', horas);
+    clon.setAttribute('data-asignado', '0');
+    clon.setAttribute('draggable', 'true');
+    
+    clon.innerHTML = `
+        <div class="modulo-info flex-1">
+            <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
+                ${grado}
+            </span>
+            <span class="font-medium ml-2">${nombre}</span>
+            <span class="text-sm text-gray-500 ml-1">(${horas}h)</span>
+            ${esPsPt ? '<span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>' : ''}
+        </div>
+        <button class="btn-quitar bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+            ✕ Quitar
+        </button>
+    `;
+    
+    configurarDragDrop(clon);
+    asignadosContainer.appendChild(clon);
+    
+    // Actualizar horas
+    horasAcumuladas += horas;
+    horasAcumuladasSpan.textContent = horasAcumuladas + 'h';
     mensajeVacio.style.display = 'none';
 }
 
-function devolverModulo(modulo) {
-    if(!datosCargados) return;
+// ============================================================
+// FUNCIÓN: Devolver módulo a disponibles
+// ============================================================
+function devolverAModulos(modulo) {
+    const id = modulo.dataset.id;
+    const nombre = modulo.dataset.nombre;
+    const grado = modulo.dataset.grado;
+    const horas = parseInt(modulo.dataset.horas);
     
-    const id = parseInt(modulo.dataset.id);
-    const originalMod = todosLosModulos.find(m => parseInt(m.dataset.id) === id);
-    if(originalMod) {
+    // Buscar el original en la lista de disponibles
+    const originalMod = document.querySelector(`#listaModulos .modulo-item[data-id="${id}"]`);
+    if (originalMod) {
         originalMod.style.display = 'flex';
-        const categoriaModulo = originalMod.dataset.categoria || '';
-        const btn = originalMod.querySelector('button');
-        btn.textContent = 'Asignar →';
-        if(categoriaModulo && profesorCategoria && categoriaModulo !== profesorCategoria) {
-            btn.disabled = true;
-            btn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
-            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-        } else {
-            btn.disabled = false;
-            btn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-            btn.classList.add('bg-orange-500', 'hover:bg-orange-600');
-        }
+    } else {
+        // Si no existe, recrearlo (por si acaso)
+        const disponiblesContainer = document.getElementById('listaModulos');
+        const esPsPt = modulo.querySelector('.bg-purple-200') !== null;
+        const colorFondo = esPsPt ? 'bg-purple-100' : 'bg-orange-100';
+        const borderColor = esPsPt ? 'border-purple-500' : 'border-orange-500';
+        
+        const nuevoMod = document.createElement('div');
+        nuevoMod.className = `modulo-item ${colorFondo} p-3 rounded-lg shadow-sm flex justify-between items-center transition border-l-4 ${borderColor}`;
+        nuevoMod.setAttribute('data-id', id);
+        nuevoMod.setAttribute('data-nombre', nombre);
+        nuevoMod.setAttribute('data-grado', grado);
+        nuevoMod.setAttribute('data-horas', horas);
+        nuevoMod.setAttribute('data-asignado', '0');
+        nuevoMod.setAttribute('draggable', 'true');
+        
+        nuevoMod.innerHTML = `
+            <div class="modulo-info flex-1">
+                <span class="text-xs font-semibold text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
+                    ${grado}
+                </span>
+                <span class="font-medium ml-2">${nombre}</span>
+                <span class="text-sm text-gray-500 ml-1">(${horas}h)</span>
+                ${esPsPt ? '<span class="text-xs ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full">PS/PT</span>' : ''}
+            </div>
+            <button class="btn-asignar bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm">
+                Asignar →
+            </button>
+        `;
+        
+        configurarDragDrop(nuevoMod);
+        disponiblesContainer.appendChild(nuevoMod);
     }
     
+    // Eliminar clon
     modulo.remove();
-    horasAcumuladasVal -= parseInt(modulo.dataset.horas);
-    if (horasAcumuladasVal < 0) horasAcumuladasVal = 0;
-    actualizarHoras();
-}
-
-function actualizarHoras() {
-    horasAcumuladasSpan.textContent = horasAcumuladasVal + 'h';
-    mensajeVacio.style.display = asignados.children.length === 0 ? 'block' : 'none';
-}
-
-// ─── EVENTOS CLICK ───────────────────────────────────────────────
-listaModulosDiv.addEventListener('click', e => {
-    const btn = e.target.closest('button.btn-asignar');
-    if (!btn) return;
-    if(btn.disabled) {
-        alert('❌ No puedes asignar este módulo porque la categoría no coincide o ya está asignado.');
-        return;
+    
+    // Actualizar horas
+    horasAcumuladas -= horas;
+    if (horasAcumuladas < 0) horasAcumuladas = 0;
+    horasAcumuladasSpan.textContent = horasAcumuladas + 'h';
+    
+    if (asignadosContainer.children.length === 0) {
+        mensajeVacio.style.display = 'block';
     }
-    moverAAsignados(btn.closest('.modulo-item'));
-});
+}
 
-asignados.addEventListener('click', e => {
-    const btn = e.target.closest('button.btn-quitar');
-    if (!btn) return;
-    devolverModulo(btn.closest('.modulo-item'));
-});
+// ============================================================
+// FUNCIÓN: Configurar Drag & Drop
+// ============================================================
+function configurarDragDrop(elemento) {
+    elemento.setAttribute('draggable', 'true');
+    
+    elemento.addEventListener('dragstart', function(e) {
+        const btn = this.querySelector('button');
+        if (btn && btn.disabled) {
+            e.preventDefault();
+            return false;
+        }
+        draggedItem = this;
+        e.dataTransfer.setData('text/plain', this.dataset.id);
+        e.dataTransfer.effectAllowed = 'move';
+        this.classList.add('module-dragging');
+    });
+    
+    elemento.addEventListener('dragend', function(e) {
+        this.classList.remove('module-dragging');
+        draggedItem = null;
+    });
+}
 
-// ─── BUSCADOR ────────────────────────────────────────────────────
-buscador.addEventListener('input', function () {
-    const valor = this.value.toLowerCase();
+// ============================================================
+// CONFIGURAR DROPZONE
+// ============================================================
+function configurarDropzone() {
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        this.classList.add('drag-over');
+    });
+    
+    dropzone.addEventListener('dragleave', function(e) {
+        this.classList.remove('drag-over');
+    });
+    
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        
+        if (!draggedItem) return;
+        if (draggedItem.parentElement?.id === 'asignadosContainer') return;
+        if (draggedItem.dataset.asignado === '1') return;
+        
+        moverAAsignados(draggedItem);
+        draggedItem = null;
+    });
+}
+
+// ============================================================
+// CONFIGURAR DROPZONE PARA DEVOLVER
+// ============================================================
+function configurarDropzoneDevolver() {
+    asignadosContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+    
+    asignadosContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+        if (draggedItem.parentElement?.id !== 'asignadosContainer') return;
+        
+        devolverAModulos(draggedItem);
+        draggedItem = null;
+    });
+}
+
+// ============================================================
+// CONFIGURAR DRAG EN MÓDULOS EXISTENTES
+// ============================================================
+function configurarDragModulosExistentes() {
     document.querySelectorAll('#listaModulos .modulo-item').forEach(mod => {
-        if(mod.style.display === 'none') return;
-        const nombre = mod.dataset.nombre.toLowerCase();
-        mod.style.display = nombre.includes(valor) ? 'flex' : 'none';
+        const btn = mod.querySelector('button');
+        if (btn && !btn.disabled) {
+            configurarDragDrop(mod);
+        }
+    });
+}
+
+// ============================================================
+// EVENTOS
+// ============================================================
+
+// Cambio de profesor
+selectProfesor.addEventListener('change', async function() {
+    profesorActualId = this.value;
+    const nombreProfesor = this.options[this.selectedIndex]?.dataset.nombre || '';
+    const horas = this.options[this.selectedIndex]?.dataset.horas || '0';
+    
+    horasProfesorSpan.textContent = horas + 'h';
+    await cargarModulosAsignados(profesorActualId, nombreProfesor);
+});
+
+// Botones "Asignar"
+listaModulosDiv.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-asignar');
+    if (!btn) return;
+    if (btn.disabled) return;
+    const modulo = btn.closest('.modulo-item');
+    moverAAsignados(modulo);
+});
+
+// Botones "Quitar"
+asignadosContainer.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-quitar');
+    if (!btn) return;
+    const modulo = btn.closest('.modulo-item');
+    devolverAModulos(modulo);
+});
+
+// Buscador
+buscador.addEventListener('input', function() {
+    const texto = this.value.toLowerCase();
+    document.querySelectorAll('#listaModulos .modulo-item').forEach(mod => {
+        const nombre = mod.dataset.nombre?.toLowerCase() || '';
+        mod.style.display = nombre.includes(texto) ? 'flex' : 'none';
     });
 });
 
-// ─── GUARDAR ASIGNACIÓN ──────────────────────────────────────────
-document.getElementById('guardar').addEventListener('click', async () => {
-    const profesor_id = selectProfesor.value;
-    if (!profesor_id) return alert('Selecciona un profesor primero');
-
-    if (horasAcumuladasVal > 20) {
-        const confirmar = confirm(`⚠️ AVISO: El profesor tendrá ${horasAcumuladasVal} horas (supera el límite de 20).\n\n¿Deseas guardar igualmente?`);
+// Guardar asignación
+document.getElementById('guardarBtn').addEventListener('click', async () => {
+    if (!profesorActualId) {
+        alert('Selecciona un profesor primero');
+        return;
+    }
+    
+    if (horasAcumuladas > 20) {
+        const confirmar = confirm(`⚠️ AVISO: El profesor tendrá ${horasAcumuladas} horas (supera el límite de 20).\n\n¿Deseas guardar igualmente?`);
         if (!confirmar) return;
     }
-
-    const modulosAsignados = Array.from(asignados.children).map(mod => ({ modulo_id: parseInt(mod.dataset.id) }));
-
+    
+    const modulosAsignados = Array.from(asignadosContainer.children).map(mod => ({
+        modulo_id: parseInt(mod.dataset.id)
+    }));
+    
+    const guardarBtn = document.getElementById('guardarBtn');
+    const textoOriginal = guardarBtn.textContent;
+    guardarBtn.textContent = '💾 Guardando...';
+    guardarBtn.disabled = true;
+    
     try {
         const res = await fetch('/TFG/controladores/Controlador_asignarMod.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                asignaciones: modulosAsignados, 
-                profesor_id: parseInt(profesor_id)
+            body: JSON.stringify({
+                asignaciones: modulosAsignados,
+                profesor_id: parseInt(profesorActualId)
             })
         });
         const data = await res.json();
@@ -509,6 +594,25 @@ document.getElementById('guardar').addEventListener('click', async () => {
     } catch(err) {
         console.error(err);
         alert('Error de conexión al guardar');
+    } finally {
+        guardarBtn.textContent = textoOriginal;
+        guardarBtn.disabled = false;
+    }
+});
+
+// ============================================================
+// INICIALIZAR
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    configurarDropzone();
+    configurarDropzoneDevolver();
+    configurarDragModulosExistentes();
+    
+    // Cargar profesor por defecto si existe
+    if (selectProfesor.value) {
+        profesorActualId = selectProfesor.value;
+        const nombreProfesor = selectProfesor.options[selectProfesor.selectedIndex]?.dataset.nombre || '';
+        cargarModulosAsignados(profesorActualId, nombreProfesor);
     }
 });
 </script>
