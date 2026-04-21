@@ -1,134 +1,87 @@
 <?php
+require_once __DIR__ . '/../core/BaseDatos.php';
+
 class Modelo_modulos {
 
-    private $conexion;
+    private PDO $db;
 
     public function __construct() {
-        $this->conexion = new mysqli("localhost", "root", "", "tfg_instituto");
-
-        if ($this->conexion->connect_error) {
-            die("Error de conexión: " . $this->conexion->connect_error);
-        }
+        $this->db = BaseDatos::conexion();
     }
 
-    public function guardarModulo($grado, $curso, $nombre_modulo, $horas, $categoria, $profesor_id = null) {
-
-        $sql = "INSERT INTO modulos (grado, curso, nombre_modulo, horas, categoria, profesor_id) 
-                VALUES (?, ?, ?, ?, ?, ?)";
-
-        $stmt = $this->conexion->prepare($sql);
-
-        if(!$stmt) {
-            throw new Exception("Error al preparar la consulta: " . $this->conexion->error);
-        }
-
-        $stmt->bind_param("sssisi", $grado, $curso, $nombre_modulo, $horas, $categoria, $profesor_id);
-
-        if(!$stmt->execute()) {
-            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
-        }
-
-        $stmt->close();
-    }
-
-
-    public function obtenerHorasProfesor($profesor_id) {
-
-    $stmt = $this->conexion->prepare(
-        "SELECT COALESCE(SUM(horas), 0) as total FROM modulos WHERE profesor_id = ?"
-    );
-
-    $stmt->bind_param("i", $profesor_id);
-    $stmt->execute();
-
-    $resultado = $stmt->get_result()->fetch_assoc();
-
-    return (int)$resultado['total'];
-}
-
-    public function obtenerModulosPorProfesor($profesor_id) {
-
-        $stmt = $this->conexion->prepare(
-            "SELECT * FROM modulos WHERE profesor_id = ? ORDER BY grado, curso"
+    public function guardarModulo(
+        ?string $grado,
+        ?string $curso,
+        ?string $nombre_modulo,
+        ?int    $horas,
+        ?string $categoria,
+        ?int    $profesor_id = null
+    ): void {
+        $stmt = $this->db->prepare(
+            'INSERT INTO modulos (grado, curso, nombre_modulo, horas, categoria, profesor_id)
+             VALUES (?, ?, ?, ?, ?, ?)'
         );
-
-        $stmt->bind_param("i", $profesor_id);
-        $stmt->execute();
-
-        $resultado = $stmt->get_result();
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+        $stmt->execute([$grado, $curso, $nombre_modulo, $horas, $categoria, $profesor_id]);
     }
 
-    public function obtenerModulos() {
-
-        $resultado = $this->conexion->query("SELECT * FROM modulos ORDER BY grado, curso");
-
-        if(!$resultado){
-            throw new Exception("Error en la consulta: " . $this->conexion->error);
-        }
-
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+    public function obtenerModulos(): array {
+        return $this->db->query(
+            'SELECT * FROM modulos ORDER BY grado, curso'
+        )->fetchAll();
     }
 
-    public function asignarProfesor($modulo_id, $profesor_id) {
-        $sql = "UPDATE modulos SET profesor_id = ? WHERE id = ?";
-        $stmt = $this->conexion->prepare($sql);
-
-        if(!$stmt) {
-            throw new Exception("Error al preparar la consulta: " . $this->conexion->error);
-        }
-
-        $stmt->bind_param("ii", $profesor_id, $modulo_id);
-
-        if(!$stmt->execute()) {
-            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
-        }
-
-        $stmt->close();
+    public function obtenerModulosConProfesor(): array {
+        return $this->db->query(
+            'SELECT m.*, p.nombre AS profesor_nombre
+             FROM modulos m
+             LEFT JOIN profesores p ON m.profesor_id = p.orden
+             ORDER BY m.grado, m.curso'
+        )->fetchAll();
     }
 
-    public function obtenerModulosConProfesor() {
-        $resultado = $this->conexion->query("
-            SELECT m.*, p.nombre as profesor_nombre 
-            FROM modulos m
-            LEFT JOIN profesores p ON m.profesor_id = p.orden
-            ORDER BY m.grado, m.curso
-        ");
-        
-        if(!$resultado){
-            throw new Exception("Error en la consulta: " . $this->conexion->error);
-        }
-        
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+    public function obtenerModulosPorProfesor(int $profesor_id): array {
+        $stmt = $this->db->prepare(
+            'SELECT * FROM modulos WHERE profesor_id = ? ORDER BY grado, curso'
+        );
+        $stmt->execute([$profesor_id]);
+        return $stmt->fetchAll();
     }
 
-    public function obtenerTodosProfesoresConHoras() {
-        $resultado = $this->conexion->query("
-            SELECT p.*, 
-                   COALESCE(SUM(m.horas), 0) as total_horas
-            FROM profesores p
-            LEFT JOIN modulos m ON p.orden = m.profesor_id
-            GROUP BY p.orden
-            ORDER BY p.nombre
-        ");
-        
-        if(!$resultado){
-            throw new Exception("Error en la consulta: " . $this->conexion->error);
-        }
-        
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+    public function obtenerHorasProfesor(int $profesor_id): int {
+        $stmt = $this->db->prepare(
+            'SELECT COALESCE(SUM(horas), 0) AS total FROM modulos WHERE profesor_id = ?'
+        );
+        $stmt->execute([$profesor_id]);
+        return (int)$stmt->fetchColumn();
     }
 
-    public function eliminarTodosModulos() {
-        $sql = "DELETE FROM modulos";
-        $resultado = $this->conexion->query($sql);
-        
-        if(!$resultado) {
-            throw new Exception("Error al eliminar módulos: " . $this->conexion->error);
-        }
-        
-        $this->conexion->query("ALTER TABLE modulos AUTO_INCREMENT = 1");
-        
-        return true;
+    public function obtenerTodosProfesoresConHoras(): array {
+        return $this->db->query(
+            'SELECT p.*, COALESCE(SUM(m.horas), 0) AS total_horas
+             FROM profesores p
+             LEFT JOIN modulos m ON p.orden = m.profesor_id
+             GROUP BY p.orden
+             ORDER BY p.nombre'
+        )->fetchAll();
     }
+
+    public function asignarProfesor(int $modulo_id, ?int $profesor_id): void {
+        $stmt = $this->db->prepare(
+            'UPDATE modulos SET profesor_id = ? WHERE id = ?'
+        );
+        $stmt->execute([$profesor_id, $modulo_id]);
+    }
+
+public function eliminarTodos() {
+    try {
+        $this->db->exec("SET FOREIGN_KEY_CHECKS = 0");
+        // Borramos SOLO la tabla módulos. 
+        // Al borrar módulos, los profesores NO se ven afectados porque ellos son el "padre".
+        $this->db->exec("DELETE FROM modulos"); 
+        $this->db->exec("SET FOREIGN_KEY_CHECKS = 1");
+    } catch (Exception $e) {
+        error_log("Error en eliminarTodos Módulos: " . $e->getMessage());
+        throw $e;
+    }
+}
 }

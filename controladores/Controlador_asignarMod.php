@@ -1,5 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+session_start();
+header('Content-Type: application/json');
 
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
     http_response_code(403);
@@ -7,83 +8,60 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
     exit();
 }
 
+require_once __DIR__ . '/../core/BaseDatos.php';
 require_once __DIR__ . '/../modelos/Modelo_modulos.php';
-header('Content-Type: application/json');
 
-$body = file_get_contents('php://input');
-$datos = json_decode($body, true);
+$datos = json_decode(file_get_contents('php://input'), true);
 
-if (!$datos || !isset($datos['asignaciones']) || !isset($datos['profesor_id'])) {
+if (!$datos || !isset($datos['asignaciones'], $datos['profesor_id'])) {
     echo json_encode(['ok' => false, 'mensaje' => 'Datos incorrectos']);
     exit();
 }
 
-$asignaciones = $datos['asignaciones'];
-$profesor_id = (int)$datos['profesor_id'];
+$profesor_id  = (int)$datos['profesor_id'];
+$idsEnviados  = array_map(fn($a) => (int)$a['modulo_id'], $datos['asignaciones']);
 
 try {
     $modelo = new Modelo_modulos();
 
-    // 🔹 Obtener módulos actuales del profesor
-    $modulosActuales = $modelo->obtenerModulosPorProfesor($profesor_id);
-    $idsActuales = array_column($modulosActuales, 'id');
-
-    // 🔹 IDs enviados desde el frontend
-    $idsEnviados = array_map(fn($a) => (int)$a['modulo_id'], $asignaciones);
-
-    // 🔹 Obtener todos los módulos para calcular horas y ver asignaciones
     $todosModulos = $modelo->obtenerModulos();
-    $modulosHoras = [];
-    $modulosAsignadosOtros = [];
+
+    // IDs ya asignados a OTROS profesores (no se pueden reasignar)
+    $bloqueados = array_column(
+        array_filter($todosModulos, fn($m) => $m['profesor_id'] !== null && (int)$m['profesor_id'] !== $profesor_id),
+        'id'
+    );
+
+    $idsValidos = array_values(array_filter($idsEnviados, fn($id) => !in_array($id, $bloqueados)));
+
+    // Calcular horas totales
+    $horasMap     = array_column($todosModulos, 'horas', 'id');
+    $horasTotales = array_sum(array_map(fn($id) => (int)($horasMap[$id] ?? 0), $idsValidos));
+
+    // Actualizar BD
     foreach ($todosModulos as $mod) {
-        $modulosHoras[$mod['id']] = (int)$mod['horas'];
-        if ($mod['profesor_id'] !== null && $mod['profesor_id'] != $profesor_id) {
-            $modulosAsignadosOtros[] = $mod['id'];
+        $enLista = in_array($mod['id'], $idsValidos);
+        $esMio   = (int)$mod['profesor_id'] === $profesor_id;
+
+        if ($enLista && !$esMio) {
+            $modelo->asignarProfesor($mod['id'], $profesor_id);
+        } elseif (!$enLista && $esMio) {
+            $modelo->asignarProfesor($mod['id'], null);
         }
     }
 
-    // 🔹 Filtrar módulos enviados que no pertenecen a otros profesores
-    $idsValidos = array_filter($idsEnviados, fn($id) => !in_array($id, $modulosAsignadosOtros));
-
-    // 🔹 Determinar módulos finales que el profesor tendrá
-    $idsFinales = array_unique(array_merge(
-        array_diff($idsActuales, array_diff($idsActuales, $idsValidos)),
-        $idsValidos
-    ));
-
-    // 🔹 Calcular horas totales
-    $horasTotales = 0;
-    foreach ($idsFinales as $id) {
-        $horasTotales += $modulosHoras[$id] ?? 0;
-    }
-
-    // ✅ CAMBIO: Solo avisar, NO bloquear
     $supera20 = $horasTotales > 20;
-    $mensajeAdvertencia = $supera20 ? "⚠️ AVISO: El profesor supera las 20 horas ({$horasTotales}h). Se ha guardado igualmente." : null;
-
-    // 🔹 Actualizar asignaciones en la base de datos (SIEMPRE se guarda)
-    foreach ($todosModulos as $mod) {
-        $modId = $mod['id'];
-        if (in_array($modId, $idsFinales)) {
-            if ($mod['profesor_id'] != $profesor_id) {
-                $modelo->asignarProfesor($modId, $profesor_id);
-            }
-        } else {
-            if ($mod['profesor_id'] == $profesor_id) {
-                $modelo->asignarProfesor($modId, null);
-            }
-        }
-    }
 
     echo json_encode([
-        'ok' => true, 
-        'mensaje' => $mensajeAdvertencia ?? 'Módulos actualizados correctamente',
-        'supera_20' => $supera20,
-        'horas_totales' => $horasTotales
+        'ok'           => true,
+        'mensaje'      => $supera20
+            ? "⚠️ Guardado. El profesor supera las 20 horas ({$horasTotales}h)."
+            : 'Módulos actualizados correctamente.',
+        'supera_20'    => $supera20,
+        'horas_totales'=> $horasTotales,
     ]);
 
 } catch (Exception $e) {
     error_log($e->getMessage());
     echo json_encode(['ok' => false, 'mensaje' => 'Error interno: ' . $e->getMessage()]);
 }
-?>
