@@ -1,72 +1,53 @@
 <?php
+require_once __DIR__ . '/../core/BaseDatos.php';
+
 class Modelo_profesores {
 
-    private $conexion;
+    private PDO $db;
 
     public function __construct() {
-        $this->conexion = new mysqli("localhost", "root", "", "tfg_instituto");
-
-        if ($this->conexion->connect_error) {
-            die("Error de conexión: " . $this->conexion->connect_error);
-        }
+        $this->db = BaseDatos::conexion();
     }
 
-    public function guardarProfesor($nombre, $categoria) {
-
-        $sql = "INSERT INTO profesores (nombre, categoria) VALUES (?, ?)";
-
-        $stmt = $this->conexion->prepare($sql);
-
-        if(!$stmt){
-            die("Error prepare: " . $this->conexion->error);
-        }
-
-        $stmt->bind_param("ss", $nombre, $categoria);
-
-        if(!$stmt->execute()){
-            die("Error al insertar: " . $stmt->error);
-        }
-
-        $stmt->close();
-    }
-
-    public function existeProfesor($nombre){
-
-        $stmt = $this->conexion->prepare(
-            "SELECT orden FROM profesores WHERE nombre = ? LIMIT 1"
+    public function guardarProfesor(string $nombre, string $categoria): void {
+        $stmt = $this->db->prepare(
+            'INSERT INTO profesores (nombre, categoria) VALUES (?, ?)'
         );
-
-        $stmt->bind_param("s", $nombre);
-        $stmt->execute();
-
-        return $stmt->get_result()->num_rows > 0;
+        $stmt->execute([$nombre, $categoria]);
     }
 
-    public function obtenerProfesores() {
-        return $this->conexion->query("SELECT * FROM profesores")->fetch_all(MYSQLI_ASSOC);
+    public function existeProfesor(string $nombre): bool {
+        $stmt = $this->db->prepare(
+            'SELECT orden FROM profesores WHERE nombre = ? LIMIT 1'
+        );
+        $stmt->execute([$nombre]);
+        return $stmt->rowCount() > 0;
     }
 
-    public function obtenerProfesorPorId($id) {
-
-        $stmt = $this->conexion->prepare("SELECT * FROM profesores WHERE orden = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-
-        return $stmt->get_result()->fetch_assoc();
+    public function obtenerProfesores(): array {
+        return $this->db->query('SELECT * FROM profesores ORDER BY nombre')->fetchAll();
     }
 
-    // Método para eliminar todos los profesores
-public function eliminarTodosProfesores() {
-    $sql = "DELETE FROM profesores";
-    $resultado = $this->conexion->query($sql);
-    
-    if(!$resultado) {
-        throw new Exception("Error al eliminar profesores: " . $this->conexion->error);
+    public function obtenerProfesorPorId(int $id): ?array {
+        $stmt = $this->db->prepare('SELECT * FROM profesores WHERE orden = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
     }
-    
-    // Resetear AUTO_INCREMENT
-    $this->conexion->query("ALTER TABLE profesores AUTO_INCREMENT = 1");
-    
-    return true;
+
+
+public function eliminarTodos() {
+    try {
+        // Aseguramos que los módulos se queden "huérfanos" pero no se borren.
+        // Importante: No usamos FOREIGN_KEY_CHECKS aquí para que el UPDATE sea forzoso.
+        $this->db->exec("UPDATE modulos SET profesor_id = NULL"); 
+
+        $this->db->exec("SET FOREIGN_KEY_CHECKS = 0");
+        // Usamos DELETE para mayor seguridad que TRUNCATE
+        $this->db->exec("DELETE FROM profesores");
+        $this->db->exec("SET FOREIGN_KEY_CHECKS = 1");
+    } catch (Exception $e) {
+        error_log("Error en eliminarTodos Profesores: " . $e->getMessage());
+        throw $e;
+    }
 }
 }
