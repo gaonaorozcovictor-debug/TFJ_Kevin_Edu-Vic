@@ -131,14 +131,14 @@
   .asign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 900px) { .asign-grid { grid-template-columns: 1fr; } }
 
-  .col-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    min-height: 500px;
-  }
+.col-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 220px); /* ajusta este valor */
+}
 
   .col-header {
     padding: 16px 20px;
@@ -308,8 +308,31 @@ $primerProfesor = !empty($profesoresConHoras) ? $profesoresConHoras[0] : null;
     <?php unset($_SESSION['error']); ?>
   <?php endif; ?>
 
+
+
   <!-- Selector de profesor -->
+
+
   <div class="selector-card">
+
+  <!-- AQUI PARA LO DEL CHECKBOX -->
+<div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:.85rem; color:var(--muted);">
+
+  <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+    <input type="checkbox" id="filtroPT" onchange="filtrarProfesores()">
+    Solo PT
+  </label>
+
+  <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+    <input type="checkbox" id="filtroPS" onchange="filtrarProfesores()">
+    Solo PS
+  </label>
+
+</div>
+
+
+
+
     <span class="selector-label">Profesor:</span>
     <div class="select-wrap">
       <select id="selectProfesor">
@@ -616,6 +639,49 @@ function mostrarToast(msg, tipo = 'ok') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
+
+
+//PARA EL CHECKBOX
+function filtrarProfesores() {
+  const filtroPT = document.getElementById('filtroPT').checked;
+  const filtroPS = document.getElementById('filtroPS').checked;
+
+  const select = document.getElementById('selectProfesor');
+  const options = select.querySelectorAll('option');
+
+  options.forEach(opt => {
+    if (!opt.value) return; // saltar placeholder
+
+    const cat = (opt.dataset.categoria || '').toUpperCase();
+
+    const esPT = cat.includes('PT');
+    const esPS = cat.includes('PS');
+
+    let mostrar = true;
+
+    // lógica combinada
+    if (filtroPT && !filtroPS) {
+      mostrar = esPT;
+    } 
+    else if (filtroPS && !filtroPT) {
+      mostrar = esPS;
+    } 
+    else if (filtroPT && filtroPS) {
+      mostrar = esPT || esPS;
+    }
+    // si ninguno marcado -> mostrar todos
+
+    opt.style.display = mostrar ? '' : 'none';
+  });
+
+  // si el seleccionado queda oculto → reset
+  const selected = select.options[select.selectedIndex];
+  if (selected && selected.style.display === 'none') {
+    select.value = '';
+    cargarProfesor();
+  }
+}
+
 </script>
 </body>
 </html>
