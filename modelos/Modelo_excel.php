@@ -1,57 +1,43 @@
 <?php
-
 require_once __DIR__ . '/../recursos/vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Modelo_excel {
-public function leerExcelProfesores($rutaArchivo){
 
-    $spreadsheet = IOFactory::load($rutaArchivo);
-    $hoja = $spreadsheet->getActiveSheet();
+    public function leerExcelProfesores(string $ruta): array {
+        $hoja  = IOFactory::load($ruta)->getActiveSheet();
+        $filas = $hoja->toArray(null, true, false, false);
+        $profesores = [];
 
-    $datos = $hoja->toArray(null, true, false, false);
+        foreach ($filas as $i => $fila) {
+            if ($i === 0) continue; // cabecera
 
-    $profesores = [];
+            $nombre    = trim($fila[1] ?? '');
+            $categoria = trim($fila[2] ?? '');
 
-    foreach($datos as $index => $fila){
+            if ($nombre === '' || $categoria === '') continue;
 
-        if($index === 0) continue;
+            $profesores[] = ['nombre' => $nombre, 'categoria' => $categoria];
+        }
 
-        $nombre = $fila[1] ?? null;
-        $categoria = $fila[2] ?? null;
-
-        if(empty($nombre) || empty($categoria)) continue;
-
-        $profesores[] = [
-            'nombre' => trim($nombre),
-            'categoria' => trim($categoria)
-        ];
+        return $profesores;
     }
 
-    return $profesores;
-}
-
-    public function leerExcelModulos($rutaArchivo){
-
-        $spreadsheet = IOFactory::load($rutaArchivo);
-        $hoja = $spreadsheet->getActiveSheet();
-
-        $datos = $hoja->toArray(null, true, false, false);
-
+    public function leerExcelModulos(string $ruta): array {
+        $hoja  = IOFactory::load($ruta)->getActiveSheet();
+        $filas = $hoja->toArray(null, true, false, false);
         $modulos = [];
 
-        foreach($datos as $index => $fila){
-
-            if($index === 0) continue;
-
-            if(empty($fila[2])) continue;
+        foreach ($filas as $i => $fila) {
+            if ($i === 0) continue; // cabecera
+            if (empty($fila[2])) continue;
 
             $modulos[] = [
-                'grado' => $fila[0] ?? null,
-                'curso' => $fila[1] ?? null,
+                'grado'         => $fila[0] ?? null,
+                'curso'         => $fila[1] ?? null,
                 'nombre_modulo' => $fila[2] ?? null,
-                'horas' => $fila[3] ?? null,
-                'categoria' => $fila[4] ?? null
+                'horas'         => isset($fila[3]) ? (int)$fila[3] : null,
+                'categoria'     => $fila[4] ?? null,
             ];
         }
 

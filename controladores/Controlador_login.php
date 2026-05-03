@@ -1,51 +1,44 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
+require_once __DIR__ . '/../core/BaseDatos.php';
 require_once __DIR__ . '/../modelos/Modelo_profesores.php';
-$modelo = new Modelo_profesores();
 
+define('BASE_URL', '/asignaciones');
 
-// LOGIN ADMIN
+// Login administrador
 if (isset($_POST['login_admin'])) {
-
-    $usuario  = trim($_POST['usuario'] ?? '');
+    $usuario  = trim($_POST['usuario']  ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    if ($usuario === "admin" && $password === "1234") {
-
+    if ($usuario === 'admin' && $password === '1234') {
         $_SESSION['usuario'] = 'admin';
         $_SESSION['rol']     = 'admin';
         $_SESSION['nombre']  = 'Administrador';
-
-        header("Location: ../index.php?vista=admin");
-        exit();
-
+        header('Location: ' . BASE_URL . '/?vista=admin');
     } else {
-        $_SESSION['error'] = "Credenciales incorrectas";
-        header("Location: ../index.php");
-        exit();
+        $_SESSION['error'] = 'Credenciales incorrectas.';
+        header('Location: ' . BASE_URL . '/');
     }
+    exit();
 }
 
-
-// LOGIN PROFESOR
+// Login profesor
 if (isset($_POST['login_profesor'])) {
+    $profesor_id = (int)($_POST['profesor_id'] ?? 0);
 
-    $profesor_id = $_POST['profesor_id'] ?? '';
-
-    if (empty($profesor_id)) {
-        $_SESSION['error'] = "Selecciona un profesor";
-        header("Location: ../index.php");
+    if ($profesor_id <= 0) {
+        $_SESSION['error'] = 'Selecciona un profesor.';
+        header('Location: ' . BASE_URL . '/');
         exit();
     }
 
+    $modelo   = new Modelo_profesores();
     $profesor = $modelo->obtenerProfesorPorId($profesor_id);
 
     if (!$profesor) {
-        $_SESSION['error'] = "Profesor no encontrado";
-        header("Location: ../index.php");
+        $_SESSION['error'] = 'Profesor no encontrado.';
+        header('Location: ' . BASE_URL . '/');
         exit();
     }
 
@@ -54,11 +47,10 @@ if (isset($_POST['login_profesor'])) {
     $_SESSION['profesor_id']= $profesor_id;
     $_SESSION['nombre']     = $profesor['nombre'];
 
-    header("Location: ../index.php?vista=profesor");
+    header('Location: ' . BASE_URL . '/?vista=profesor');
     exit();
 }
 
-// SI ALGUIEN ENTRA DIRECTAMENTE A ESTE ARCHIVO SIN POST
-header("Location: ../index.php");
+// Acceso directo sin POST → redirigir al inicio
+header('Location: ' . BASE_URL . '/');
 exit();
-?>
