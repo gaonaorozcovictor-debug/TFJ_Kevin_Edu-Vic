@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../recursos/vendor/autoload.php';
+require_once __DIR__ . '/../Recursos/vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Modelo_excel {

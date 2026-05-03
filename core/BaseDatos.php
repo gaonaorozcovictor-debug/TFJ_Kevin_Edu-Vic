@@ -7,10 +7,10 @@ class BaseDatos {
 
     private static ?PDO $instancia = null;
 
-    private const HOST = 'localhost';
-    private const USER = 'root';
-    private const PASS = '';
-    private const DB   = 'tfg_instituto';
+    private const HOST = '13.185';
+    private const USER = '';
+    private const PASS = 'aplicacion$';
+    private const DB   = '';
 
     /** Retorna siempre la misma instancia PDO (Singleton). */
     public static function conexion(): PDO {

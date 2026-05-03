@@ -32,7 +32,7 @@ $profesores = $modeloProfesores->obtenerProfesores();
         <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4 md:mb-0">
             Asignación de Módulos
         </h1>
-        <form action="./core/cerrar_sesion.php" method="post">
+        <form action="/asignaciones/core/cerrar_sesion.php" method="post">
             <button type="submit" 
                 class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-2xl shadow-md transition">
                 Cerrar sesión
@@ -146,7 +146,7 @@ document.getElementById('guardar').addEventListener('click', () => {
         });
     });
 
-    fetch('../controladores/Controlador_asignarMod.php', {
+    fetch('/asignaciones/controladores/Controlador_asignarMod.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(asignaciones)

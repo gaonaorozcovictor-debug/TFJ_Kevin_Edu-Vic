@@ -145,6 +145,108 @@
   }
   .badge-gray   { background: #f0f0f0; color: #555; }
   .badge-purple { background: #ede9fb; color: #6b3fa0; }
+
+  /* ── Botón exportar PDF ── */
+  .actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+  }
+
+  .btn-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    text-decoration: none;
+  }
+  .btn-pdf:hover  { background: #c94e0e; }
+  .btn-pdf:active { transform: scale(.97); }
+  .btn-pdf svg    { flex-shrink: 0; }
+
+  /* ── Estilos de impresión / exportación PDF ── */
+  @media print {
+    @page {
+      size: A4;
+      margin: 18mm 15mm 20mm 15mm;
+    }
+
+    body { background: #fff !important; }
+
+    .navbar,
+    .actions-bar,
+    .btn,
+    .btn-ghost { display: none !important; }
+
+    .page {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* Cabecera de impresión */
+    .print-header {
+      display: block !important;
+      text-align: center;
+      border-bottom: 2px solid #1a1a2e;
+      padding-bottom: 12px;
+      margin-bottom: 22px;
+    }
+    .print-header .ph-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .print-header .ph-sub {
+      font-size: .82rem;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    .welcome h1   { font-size: 1.4rem; }
+    .welcome p    { font-size: .85rem; }
+
+    .horas-card {
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-inside: avoid;
+    }
+
+    .card {
+      border: 1px solid #ccc !important;
+      page-break-inside: avoid;
+    }
+
+    table { font-size: .82rem; }
+
+    .badge-gray   { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-purple { background: #ede9fb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Pie de impresión */
+    .print-footer {
+      display: block !important;
+      text-align: center;
+      margin-top: 28px;
+      font-size: .75rem;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+    }
+  }
+
+  /* Ocultos en pantalla, visibles al imprimir */
+  .print-header,
+  .print-footer { display: none; }
 </style>
 </head>
 <body>
@@ -169,10 +271,31 @@ $porcentaje = min(100, round($totalHoras / $maxHoras * 100));
 
 <div class="page">
 
+  <!-- Cabecera visible sólo al imprimir -->
+  <div class="print-header">
+    <div class="ph-title">Ciudad Escolar FP &mdash; Asignación de Módulos</div>
+    <div class="ph-sub">Curso académico &middot; Documento generado el <?= date('d/m/Y \a \l\a\s H:i') ?></div>
+  </div>
+
   <div class="welcome">
     <h1>Hola, <?= htmlspecialchars($_SESSION['nombre'] ?? 'Profesor') ?></h1>
     <p>Aquí tienes los módulos que tienes asignados este curso.</p>
   </div>
+
+  <!-- Botón exportar PDF -->
+  <?php if (!empty($modulos)): ?>
+  <div class="actions-bar">
+    <button class="btn-pdf" onclick="exportarPDF()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/>
+        <line x1="9" y1="15" x2="15" y2="15"/>
+      </svg>
+      Exportar PDF
+    </button>
+  </div>
+  <?php endif; ?>
 
   <!-- Resumen horas -->
   <div class="horas-card">
@@ -237,6 +360,24 @@ $porcentaje = min(100, round($totalHoras / $maxHoras * 100));
     <?php endif; ?>
   </div>
 
+  <!-- Pie visible sólo al imprimir -->
+  <div class="print-footer">
+    Profesor: <?= htmlspecialchars($_SESSION['nombre'] ?? '') ?> &nbsp;&middot;&nbsp;
+    Total de horas asignadas: <?= $totalHoras ?>h &nbsp;&middot;&nbsp;
+    <?= count($modulos) ?> módulo<?= count($modulos) !== 1 ? 's' : '' ?>
+  </div>
+
 </div>
+
+<script>
+function exportarPDF() {
+  const nombreProfesor = <?= json_encode($_SESSION['nombre'] ?? 'Profesor') ?>;
+  const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
+  document.title = 'Modulos_' + nombreProfesor.replace(/\s+/g, '_') + '_' + fecha;
+  window.print();
+  setTimeout(() => { document.title = 'Mis módulos — Asignaciones FP'; }, 1000);
+}
+</script>
+
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-define('BASE_URL', '/asignaciones');
+if (!defined('BASE_URL')) define('BASE_URL', '/asignaciones');
 
 // Verificación de seguridad básica
 if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {

@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../core/BaseDatos.php';
 require_once __DIR__ . '/../modelos/Modelo_profesores.php';
 
-define('BASE_URL', '/asignaciones');
+if (!defined('BASE_URL')) define('BASE_URL', '/asignaciones');
 
 // Login administrador
 if (isset($_POST['login_admin'])) {
