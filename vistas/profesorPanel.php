@@ -371,11 +371,36 @@ $porcentaje = min(100, round($totalHoras / $maxHoras * 100));
 
 <script>
 function exportarPDF() {
-  const nombreProfesor = <?= json_encode($_SESSION['nombre'] ?? 'Profesor') ?>;
-  const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
-  document.title = 'Modulos_' + nombreProfesor.replace(/\s+/g, '_') + '_' + fecha;
-  window.print();
-  setTimeout(() => { document.title = 'Mis módulos — Asignaciones FP'; }, 1000);
+    const btn = document.querySelector('.btn-pdf');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '⏳ Generando PDF...';
+    btn.disabled = true;
+
+    fetch('/asignaciones/controladores/Controlador_exportarPDF.php')
+        .then(res => {
+            if (!res.ok) throw new Error('Error del servidor: ' + res.status);
+            const ct = res.headers.get('Content-Type') || '';
+            if (!ct.includes('pdf')) throw new Error('Respuesta no es PDF');
+            return res.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const nombreProfesor = <?= json_encode($_SESSION['nombre'] ?? 'Profesor') ?>;
+            const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
+            a.href = url;
+            a.download = 'Modulos_' + nombreProfesor.replace(/\s+/g, '_') + '_' + fecha + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+        })
+        .catch(err => {
+            alert('No se pudo generar el PDF: ' + err.message);
+        })
+        .finally(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        });
 }
 </script>
 
