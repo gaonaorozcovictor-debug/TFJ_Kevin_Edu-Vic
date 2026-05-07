@@ -349,13 +349,13 @@ let mostrarTodosModulos = false; // Nuevo estado para anular el filtro de especi
 function renderListasPorProfesor() {
     const busq = document.getElementById('buscador').value.toLowerCase();
     
-    // Aplicar lógica de compatibilidad por categoría (INF para PT, SAI para PS) SOLO si NO estamos en modo "mostrar todos"
+    // Aplicar lógica de compatibilidad por categoría (SAI para PT, INF para PS) SOLO si NO estamos en modo "mostrar todos"
     let disponibles = modulosEstado.filter(m => !m.asignado_a_profe);
     if (!mostrarTodosModulos && profesorActual !== 0 && categoriaProfesor) {
         disponibles = disponibles.filter(m => {
             const catMod = (m.categoria || '').toUpperCase();
-            if (categoriaProfesor.includes('PT')) return catMod === 'INF';
-            if (categoriaProfesor.includes('PS')) return catMod === 'SAI';
+            if (categoriaProfesor.includes('PT')) return catMod === 'SAI';
+            if (categoriaProfesor.includes('PS')) return catMod === 'INF';
             return true;
         });
     }
