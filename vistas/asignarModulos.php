@@ -1,5 +1,5 @@
 [file name: asignarModulos.php]
-[file content modified]
+[file content complete]
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -66,6 +66,8 @@
   .btn-ghost:hover { background: rgba(255,255,255,.16); }
   .btn-success { background: var(--success); color: #fff; }
   .btn-success:hover { filter: brightness(1.1); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dark); }
+  .btn-outline:hover { background: var(--light); }
 
   .page { max-width: 1400px; margin: 0 auto; padding: 28px 20px; }
   .page-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 20px; }
@@ -99,7 +101,10 @@
   
   .horas-badge-large {
     background: #1a1a2e; color: white; border-radius: 40px; padding: 4px 16px 4px 24px;
-    display: flex; align-items: baseline; gap: 12px; font-weight: 500;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    font-weight: 500;
   }
   .horas-badge-large span:first-child { font-size: .7rem; opacity: .7; text-transform: uppercase; }
   .horas-badge-large strong { font-size: 1.5rem; font-weight: 700; color: var(--accent2); margin: 0 4px; }
@@ -112,16 +117,37 @@
   .search-wrap input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; }
   .modulos-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
   
-  .mod-card { border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 12px; border-left: 4px solid; background: #fff8f4; border-color: var(--accent2); font-size: .875rem; transition: all .1s; cursor: grab; }
+  .mod-card {
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-left: 4px solid;
+    background: #fff8f4;
+    border-color: var(--accent2);
+    font-size: .875rem;
+    transition: all .1s;
+    cursor: grab;
+  }
   .mod-card.dragging { opacity: 0.5; cursor: grabbing; }
   .mod-card.tipo-pspt { background: #f3f0ff; border-color: var(--purple); }
   .mod-card.ocupado { background: #fafafa; border-color: #ddd; opacity: 0.7; cursor: not-allowed; }
   .mod-info { flex: 1; }
   .mod-titulo { font-weight: 600; margin-bottom: 4px; }
-  .mod-detalle { display: flex; gap: 12px; font-size: .7rem; color: #666; }
+  .mod-detalle { display: flex; gap: 12px; font-size: .7rem; color: #666; flex-wrap: wrap; }
   .mod-horas { font-weight: 700; color: var(--accent); white-space: nowrap; }
   .badge-cat { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #e2e3e8; }
   .badge-ocupante { background: #5b21b6; color: white; padding: 2px 8px; border-radius: 12px; font-size: .7rem; white-space: nowrap; }
+  /* Etiqueta INF/SAI */
+  .badge-especialidad {
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+  .badge-sai { background: #dbeafe; color: #1e40af; }
+  .badge-inf { background: #fce7f3; color: #9d174d; }
   .btn-asignar, .btn-quitar { border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer; }
   .btn-asignar { background: var(--accent); color: white; }
   .btn-quitar { background: #fee2e2; color: var(--danger); }
@@ -192,12 +218,13 @@ if (!isset($profesoresConHoras)) $profesoresConHoras = [];
     </div>
 
     <div class="horas-badge-large">
-      <span>Horas asignadas</span>
+      <span>Horas asignadas a</span>
       <strong id="horasActuales">0</strong>
       <span>h</span>
     </div>
     
     <button id="btnGuardar" class="btn btn-success" onclick="guardarAsignacion()">💾 Guardar</button>
+    <button id="btnMostrarTodos" class="btn btn-outline" onclick="toggleMostrarTodos()" style="margin-left:auto;">📋 Mostrar todos los módulos</button>
   </div>
 
   <div class="asign-grid">
@@ -227,17 +254,24 @@ if (!isset($profesoresConHoras)) $profesoresConHoras = [];
     <div class="prof-grid" id="resumenGrid">
       <?php foreach ($profesoresConHoras as $p): 
         $horas = $p['total_horas'];
-        if ($horas <= 5) $color = '#e05252';
+        // Rojo: <14h | Naranja: 14-19h | Verde: 20-21h | Morado: >21h
+        if ($horas < 14) $color = '#e05252';
         elseif ($horas <= 19) $color = '#f7841a';
-        elseif ($horas == 20) $color = '#2cb67d';
+        elseif ($horas <= 21) $color = '#2cb67d';
         else $color = '#7c3aed';
         $pct = min(100, round($horas / 20 * 100));
+        
+        // Aviso de límite
+        $aviso = '';
+        if ($horas > 20) $aviso = '⚠️ Supera el límite (+' . ($horas - 20) . 'h)';
+        elseif ($horas == 20) $aviso = '✅ Horas completas';
+        elseif ($horas >= 17) $aviso = '⚠️ Cerca del límite (faltan ' . (20 - $horas) . 'h)';
       ?>
-      <div class="prof-item" data-orden="<?= $p['orden'] ?>" data-horas-base="<?= $horas ?>">
+      <div class="prof-item" data-orden="<?= $p['orden'] ?>">
         <div class="prof-nombre"><?= htmlspecialchars($p['nombre']) ?></div>
         <div class="prof-cat" style="font-size:.7rem;color:#888;"><?= htmlspecialchars($p['categoria'] ?? '') ?></div>
         <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:<?= $pct ?>%;background:<?= $color ?>"></div></div>
-        <div class="prof-horas-label"><?= $horas ?>h / 20h</div>
+        <div class="prof-horas-label"><?= $horas ?>h / 20h <?= $aviso ? '<span style="color:'.$color.'">' . $aviso . '</span>' : '' ?></div>
       </div>
       <?php endforeach; ?>
     </div>
@@ -257,23 +291,39 @@ let modulosAsignados = [];
 let filtroCategoriaActivo = null;
 let mostrarTodosModulos = false;
 
-// MAPEO de horas base de cada profesor (desde el servidor)
-let horasBasePorProfesor = {};
-<?php foreach ($profesoresConHoras as $p): ?>
-horasBasePorProfesor[<?= $p['orden'] ?>] = <?= $p['total_horas'] ?>;
-<?php endforeach; ?>
-
-// Función para calcular color según horas
 function calcularColorPorHoras(horas) {
-    if (horas <= 5) return '#e05252';      // Rojo
-    if (horas <= 19) return '#f7841a';     // Naranja
-    if (horas == 20) return '#2cb67d';     // Verde
-    return '#7c3aed';                       // Morado (>20)
+    if (horas < 14) return '#e05252';
+    if (horas <= 19) return '#f7841a';
+    if (horas <= 21) return '#2cb67d';
+    return '#7c3aed';
 }
 
-// Función para actualizar el resumen de horas LOCALMENTE (sin recargar)
+function obtenerAvisoHoras(horas) {
+    if (horas > 20) return `⚠️ Supera el límite (+${horas - 20}h)`;
+    if (horas === 20) return '✅ Horas completas';
+    if (horas >= 17) return `⚠️ Cerca del límite (faltan ${20 - horas}h)`;
+    return '';
+}
+
+function obtenerEspecialidadModulo(categoria) {
+    const cat = (categoria || '').toUpperCase();
+    if (cat === 'SAI') return { clase: 'badge-sai', texto: 'SAI' };
+    if (cat === 'INF') return { clase: 'badge-inf', texto: 'INF' };
+    return null;
+}
+
+function toggleMostrarTodos() {
+    mostrarTodosModulos = !mostrarTodosModulos;
+    const btn = document.getElementById('btnMostrarTodos');
+    if (btn) {
+        btn.style.background = mostrarTodosModulos ? 'var(--accent2)' : 'transparent';
+        btn.style.color = mostrarTodosModulos ? 'white' : 'var(--dark)';
+        btn.style.borderColor = mostrarTodosModulos ? 'var(--accent2)' : 'var(--border)';
+    }
+    if (profesorActual !== 0) renderListasPorProfesor();
+}
+
 function actualizarResumenHorasLocal() {
-    // Calculamos las horas por profesor basadas en modulosEstado
     const horasPorProf = {};
     
     modulosEstado.forEach(modulo => {
@@ -284,44 +334,14 @@ function actualizarResumenHorasLocal() {
         }
     });
     
-    // Actualizar cada profesor en el resumen
-    document.querySelectorAll('.prof-item[data-orden]').forEach(el => {
-        const orden = parseInt(el.dataset.orden);
-        let horas = horasPorProf[orden] || 0;
-        
-        // Si es el profesor actual que estamos editando, usar las asignaciones locales
-        if (orden === profesorActual && profesorActual !== 0) {
-            horas = modulosAsignados.reduce((total, id) => {
-                const mod = modulosEstado.find(m => m.id == id);
-                return total + (parseInt(mod?.horas) || 0);
-            }, 0);
-        }
-        
-        const pct = Math.min(100, Math.round(horas / 20 * 100));
-        const color = calcularColorPorHoras(horas);
-        
-        const fill = el.querySelector('.mini-bar-fill');
-        const label = el.querySelector('.prof-horas-label');
-        if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
-        if (label) label.textContent = `${horas}h / 20h`;
-        
-        // Actualizar también el option del select
-        const option = document.querySelector(`#selectProfesor option[value="${orden}"]`);
-        if (option) {
-            option.dataset.horas = horas;
-            option.textContent = option.textContent.replace(/·\s*\d+h/, `· ${horas}h`);
-        }
-    });
-    
-    // Actualizar badge de horas del profesor actual
     if (profesorActual !== 0) {
         const horasProfActual = modulosAsignados.reduce((total, id) => {
             const mod = modulosEstado.find(m => m.id == id);
             return total + (parseInt(mod?.horas) || 0);
         }, 0);
+        horasPorProf[profesorActual] = horasProfActual;
         document.getElementById('horasActuales').innerHTML = horasProfActual;
         
-        // Actualizar también el option seleccionado
         const sel = document.getElementById('selectProfesor');
         const selectedOpt = sel.options[sel.selectedIndex];
         if (selectedOpt && selectedOpt.value != '0') {
@@ -329,6 +349,18 @@ function actualizarResumenHorasLocal() {
             selectedOpt.textContent = selectedOpt.textContent.replace(/·\s*\d+h/, `· ${horasProfActual}h`);
         }
     }
+    
+    document.querySelectorAll('.prof-item[data-orden]').forEach(el => {
+        const orden = parseInt(el.dataset.orden);
+        let horas = horasPorProf[orden] || 0;
+        const pct = Math.min(100, Math.round(horas / 20 * 100));
+        const color = calcularColorPorHoras(horas);
+        const aviso = obtenerAvisoHoras(horas);
+        const fill = el.querySelector('.mini-bar-fill');
+        const label = el.querySelector('.prof-horas-label');
+        if (fill) { fill.style.width = pct + '%'; fill.style.background = color; }
+        if (label) label.innerHTML = `${horas}h / 20h ${aviso ? '<span style="color:'+color+'">' + aviso + '</span>' : ''}`;
+    });
 }
 
 document.getElementById('selectProfesor').addEventListener('change', cargarProfesor);
@@ -392,12 +424,12 @@ async function cargarProfesor() {
 
 function renderListasGlobal() {
     const busq = document.getElementById('buscador').value.toLowerCase();
-    let disponibles = modulosEstado.filter(m => !m.asignado_a_profe);
+    let disponibles = modulosEstado;
     if (busq) disponibles = disponibles.filter(m => m.nombre_modulo.toLowerCase().includes(busq) || (m.grado || '').toLowerCase().includes(busq));
     
     document.getElementById('countDisp').innerHTML = disponibles.length + ' módulos';
     document.getElementById('listaDisponibles').innerHTML = disponibles.length ? disponibles.map(m => tarjetaGlobal(m)).join('') : '<div class="empty-list">No hay módulos.</div>';
-    document.getElementById('listaAsignados').innerHTML = '<div class="empty-list">Selecciona un profesor para asignar módulos.</div>';
+    document.getElementById('listaAsignados').innerHTML = '<div class="empty-list">Selecciona un profesor para ver sus asignaciones.</div>';
     attachDragEvents();
 }
 
@@ -405,6 +437,7 @@ function renderListasPorProfesor() {
     const busq = document.getElementById('buscador').value.toLowerCase();
     
     let disponibles = modulosEstado.filter(m => !m.asignado_a_profe);
+    
     if (!mostrarTodosModulos && profesorActual !== 0 && categoriaProfesor) {
         disponibles = disponibles.filter(m => {
             const catMod = (m.categoria || '').toUpperCase();
@@ -431,10 +464,18 @@ function renderListasPorProfesor() {
 
 function tarjetaGlobal(m) {
     const ocupadoPor = m.profesor_id ? PROFESORES_MAP[m.profesor_id] : null;
+    const especialidad = obtenerEspecialidadModulo(m.categoria);
+    const badgeEsp = especialidad ? `<span class="badge-especialidad ${especialidad.clase}">${especialidad.texto}</span>` : '';
     return `
     <div class="mod-card ${m.es_pspt ? 'tipo-pspt' : ''}" data-id="${m.id}" draggable="false" style="cursor:default; opacity:0.8">
-      <div class="mod-info"><div class="mod-titulo">${esc(m.nombre_modulo)}</div>
-      <div class="mod-detalle"><span>${esc(m.grado || '')}</span><span class="mod-horas">${m.horas}h</span></div></div>
+      <div class="mod-info">
+        <div class="mod-titulo">${esc(m.nombre_modulo)}</div>
+        <div class="mod-detalle">
+          <span>${esc(m.grado || '')}</span>
+          <span class="mod-horas">${m.horas}h</span>
+          ${badgeEsp}
+        </div>
+      </div>
       ${ocupadoPor ? `<span class="badge-ocupante">👤 ${esc(ocupadoPor)}</span>` : '<span class="badge-cat">Libre</span>'}
     </div>`;
 }
@@ -443,6 +484,8 @@ function tarjetaProfesor(m, accion) {
     const yaAsignado = m.asignado_a_profe;
     const ocupadoOtro = m.asignado_a_otro;
     const isDraggable = !ocupadoOtro && !yaAsignado && accion === 'asignar';
+    const especialidad = obtenerEspecialidadModulo(m.categoria);
+    const badgeEsp = especialidad ? `<span class="badge-especialidad ${especialidad.clase}">${especialidad.texto}</span>` : '';
     let btn = '';
     if (!ocupadoOtro) {
         btn = accion === 'asignar' 
@@ -452,8 +495,14 @@ function tarjetaProfesor(m, accion) {
     const badgeOcupante = ocupadoOtro ? `<span class="badge-ocupante">👤 ${esc(PROFESORES_MAP[m.profesor_id] || 'Otro')}</span>` : '';
     return `
     <div class="mod-card ${m.es_pspt ? 'tipo-pspt' : ''} ${ocupadoOtro ? 'ocupado' : ''}" data-id="${m.id}" draggable="${isDraggable}" style="${!isDraggable ? 'cursor:default;' : ''}">
-      <div class="mod-info"><div class="mod-titulo">${esc(m.nombre_modulo)}</div>
-      <div class="mod-detalle"><span>${esc(m.grado || '')}</span><span class="mod-horas">${m.horas}h</span></div></div>
+      <div class="mod-info">
+        <div class="mod-titulo">${esc(m.nombre_modulo)}</div>
+        <div class="mod-detalle">
+          <span>${esc(m.grado || '')}</span>
+          <span class="mod-horas">${m.horas}h</span>
+          ${badgeEsp}
+        </div>
+      </div>
       ${badgeOcupante}${btn}
     </div>`;
 }
@@ -473,13 +522,13 @@ function asignar(id) {
     if (mod && mod.asignado_a_otro) { mostrarToast('Módulo ya asignado a otro profesor', 'error'); return; }
     modulosAsignados.push(id);
     actualizarEstadoLocal();
-    actualizarResumenHorasLocal();  // Actualizar colores en tiempo real
+    actualizarResumenHorasLocal();
 }
 
 function quitar(id) {
     modulosAsignados = modulosAsignados.filter(x => x !== id);
     actualizarEstadoLocal();
-    actualizarResumenHorasLocal();  // Actualizar colores en tiempo real
+    actualizarResumenHorasLocal();
 }
 
 function actualizarEstadoLocal() {
@@ -564,4 +613,3 @@ function mostrarToast(msg, tipo = 'ok') {
 </script>
 </body>
 </html>
-[file content modified]
