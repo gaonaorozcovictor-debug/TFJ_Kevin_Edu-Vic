@@ -46,6 +46,7 @@ if (isset($_POST['login_profesor'])) {
     $_SESSION['rol']        = 'profesor';
     $_SESSION['profesor_id']= $profesor_id;
     $_SESSION['nombre']     = $profesor['nombre'];
+    $_SESSION['categoria']  = $profesor['categoria'] ?? '';
 
     header('Location: ' . BASE_URL . '/?vista=profesor');
     exit();
