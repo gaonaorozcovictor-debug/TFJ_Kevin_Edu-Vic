@@ -64,7 +64,6 @@
   .welcome h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--dark); }
   .welcome p  { color: var(--muted); margin-top: 6px; }
 
-  /* ── Horas card ── */
   .horas-card {
     background: var(--dark);
     color: #fff;
@@ -84,14 +83,13 @@
   .horas-bar-bg   { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; overflow: hidden; }
   .horas-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
 
-  /* ── Límites card ── */
   .limites-card {
     background: var(--white);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 18px 24px;
     margin-bottom: 24px;
-    display: none; /* se muestra via JS si hay config */
+    display: none;
   }
   .limites-title {
     font-size: .72rem;
@@ -132,16 +130,13 @@
   .limite-min  { color: var(--danger); }
   .limite-obj  { color: var(--success); }
   .limite-max  { color: var(--purple); }
-
   .limite-bar-wrap { flex: 2; min-width: 160px; }
-  .limite-bar-bg   { height: 10px; background: #f0f0f0; border-radius: 6px; position: relative; overflow: visible; margin-top: 4px; }
-  .limite-bar-fill { height: 100%; border-radius: 6px; transition: width .6s ease, background .3s; position: relative; }
+  .limite-bar-bg   { height: 10px; background: #f0f0f0; border-radius: 6px; overflow: visible; margin-top: 4px; }
+  .limite-bar-fill { height: 100%; border-radius: 6px; transition: width .6s ease; }
   .limite-aviso    { font-size: .78rem; margin-top: 8px; font-weight: 500; }
 
-  /* ── Tabla ── */
   .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
   .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: .95rem; }
-
   .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
   .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
 
@@ -165,9 +160,7 @@
   .badge-gray   { background: #f0f0f0; color: #555; }
   .badge-purple { background: #ede9fb; color: #6b3fa0; }
 
-  /* ── Botón exportar PDF ── */
   .actions-bar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-
   .btn-pdf {
     display: inline-flex;
     align-items: center;
@@ -181,12 +174,9 @@
     font-size: .875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background .2s, transform .1s;
-    text-decoration: none;
+    transition: background .2s;
   }
-  .btn-pdf:hover  { background: #c94e0e; }
-  .btn-pdf:active { transform: scale(.97); }
-  .btn-pdf svg    { flex-shrink: 0; }
+  .btn-pdf:hover { background: #c94e0e; }
   .btn-pdf.loading { opacity: .6; pointer-events: none; }
 </style>
 </head>
@@ -202,8 +192,6 @@ if (!isset($modulos)) $modulos = [];
 
 $totalHoras    = array_sum(array_column($modulos, 'horas'));
 $nombreProfesor = $_SESSION['nombre'] ?? 'Profesor';
-
-// Obtener especialidad del profesor (si existe en sesión o modelo)
 $especialidadProfesor = $_SESSION['categoria'] ?? ($_SESSION['especialidad'] ?? '');
 ?>
 
@@ -213,17 +201,15 @@ $especialidadProfesor = $_SESSION['categoria'] ?? ($_SESSION['especialidad'] ?? 
 </nav>
 
 <div class="page">
-
   <div class="welcome">
     <h1>Hola, <?= htmlspecialchars($nombreProfesor) ?></h1>
     <p>Aquí tienes los módulos que tienes asignados este curso.</p>
   </div>
 
-  <!-- Botón exportar PDF -->
   <?php if (!empty($modulos)): ?>
   <div class="actions-bar">
     <button class="btn-pdf" id="btnExportarPDF" onclick="exportarPDF()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
         <line x1="12" y1="18" x2="12" y2="12"/>
@@ -234,7 +220,6 @@ $especialidadProfesor = $_SESSION['categoria'] ?? ($_SESSION['especialidad'] ?? 
   </div>
   <?php endif; ?>
 
-  <!-- Resumen horas -->
   <div class="horas-card">
     <div>
       <div class="horas-label">Horas semanales asignadas</div>
@@ -242,126 +227,78 @@ $especialidadProfesor = $_SESSION['categoria'] ?? ($_SESSION['especialidad'] ?? 
       <div class="horas-desc"><?= count($modulos) ?> módulo<?= count($modulos) !== 1 ? 's' : '' ?></div>
     </div>
     <div class="horas-bar-wrap">
-      <div style="font-size:.8rem;color:#aaa;margin-bottom:8px" id="horasBarLabel">
-        <?= $totalHoras ?>h asignadas
-      </div>
-      <div class="horas-bar-bg">
-        <div class="horas-bar-fill" id="horasBarFill" style="width:0%;background:#f7841a"></div>
-      </div>
+      <div style="font-size:.8rem;color:#aaa;margin-bottom:8px" id="horasBarLabel"><?= $totalHoras ?>h asignadas</div>
+      <div class="horas-bar-bg"><div class="horas-bar-fill" id="horasBarFill" style="width:<?= min(100, ($totalHoras/20)*100) ?>%;background:#f7841a"></div></div>
     </div>
   </div>
 
-  <!-- Límites asignados por el admin (se muestra solo si existen en localStorage) -->
   <div class="limites-card" id="limitesCard">
     <div class="limites-title">🎯 Límites de horas establecidos por el administrador</div>
     <div class="limites-row">
-      <div class="limite-item">
-        <span class="limite-valor limite-min" id="limValMin">—</span>
-        <span class="limite-label">Mínimo</span>
-      </div>
+      <div class="limite-item"><span class="limite-valor limite-min" id="limValMin">—</span><span class="limite-label">Mínimo</span></div>
       <span class="limite-sep">·</span>
-      <div class="limite-item">
-        <span class="limite-valor limite-obj" id="limValObj">—</span>
-        <span class="limite-label">Objetivo</span>
-      </div>
+      <div class="limite-item"><span class="limite-valor limite-obj" id="limValObj">—</span><span class="limite-label">Objetivo</span></div>
       <span class="limite-sep">·</span>
-      <div class="limite-item">
-        <span class="limite-valor limite-max" id="limValMax">—</span>
-        <span class="limite-label">Máximo</span>
-      </div>
-      <div class="limite-bar-wrap">
-        <div class="limite-bar-bg">
-          <div class="limite-bar-fill" id="limBarFill" style="width:0%"></div>
-        </div>
-        <div class="limite-aviso" id="limAviso"></div>
-      </div>
+      <div class="limite-item"><span class="limite-valor limite-max" id="limValMax">—</span><span class="limite-label">Máximo</span></div>
+      <div class="limite-bar-wrap"><div class="limite-bar-bg"><div class="limite-bar-fill" id="limBarFill" style="width:0%"></div></div><div class="limite-aviso" id="limAviso"></div></div>
     </div>
   </div>
 
-  <!-- Tabla módulos -->
   <div class="card">
     <div class="card-header">📋 Módulos asignados</div>
-
     <?php if (empty($modulos)): ?>
-      <div class="empty-state">
-        <div class="icon">📭</div>
-        <p>No tienes módulos asignados todavía.</p>
-      </div>
+      <div class="empty-state"><div class="icon">📭</div><p>No tienes módulos asignados todavía.</p></div>
     <?php else: ?>
       <table>
-        <thead>
-          <tr>
-            <th>Ciclo</th>
-            <th>Módulo</th>
-            <th>Horas</th>
-            <th>Categoría</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Ciclo</th><th>Módulo</th><th>Horas</th><th>Categoría</th></tr></thead>
         <tbody>
-          <?php foreach ($modulos as $m):
-            $esPsPt = stripos($m['nombre_modulo'], 'PS') !== false || stripos($m['nombre_modulo'], 'PT') !== false;
-          ?>
+          <?php foreach ($modulos as $m): ?>
           <tr>
             <td><span class="badge badge-gray"><?= htmlspecialchars($m['grado'] ?? '-') ?></span></td>
-            <td>
-              <?= htmlspecialchars($m['nombre_modulo']) ?>
-              <?php if ($esPsPt): ?><span class="badge badge-purple" style="margin-left:6px">PS/PT</span><?php endif; ?>
-            </td>
+            <td><?= htmlspecialchars($m['nombre_modulo']) ?><?php if (stripos($m['nombre_modulo'], 'PS') !== false || stripos($m['nombre_modulo'], 'PT') !== false): ?><span class="badge badge-purple" style="margin-left:6px">PS/PT</span><?php endif; ?></td>
             <td><strong><?= $m['horas'] ?>h</strong></td>
             <td><?= htmlspecialchars($m['categoria'] ?? '-') ?></td>
           </tr>
           <?php endforeach; ?>
         </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="2">Total</td>
-            <td><?= $totalHoras ?>h</td>
-            <td></td>
-          </tr>
-        </tfoot>
+        <tfoot><tr><td colspan="2">Total</td><td><?= $totalHoras ?>h</td><td></td></tr></tfoot>
       </table>
     <?php endif; ?>
   </div>
-
 </div>
 
-<!-- jsPDF desde CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-// ── Datos PHP → JS ────────────────────────────────────────────────────────────
-const PROFESOR_ID    = <?= json_encode((int)($_SESSION['profesor_id'] ?? 0)) ?>;
+const PROFESOR_ID = <?= json_encode((int)($_SESSION['profesor_id'] ?? 0)) ?>;
 const PROFESOR_NOMBRE = <?= json_encode($nombreProfesor) ?>;
 const PROFESOR_ESPECIALIDAD = <?= json_encode($especialidadProfesor) ?>;
-const TOTAL_HORAS    = <?= (int)$totalHoras ?>;
-const MODULOS_DATA   = <?= json_encode(array_values($modulos), JSON_UNESCAPED_UNICODE) ?>;
-const STORAGE_KEY    = 'horasConfigProfesor';
+const TOTAL_HORAS = <?= (int)$totalHoras ?>;
+const MODULOS_DATA = <?= json_encode(array_values($modulos), JSON_UNESCAPED_UNICODE) ?>;
+const STORAGE_KEY = 'horasConfigProfesor';
 
-// ── Cargar límites del admin desde localStorage ────────────────────────────
 function cargarLimites() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) return null;
         const cfg = JSON.parse(stored);
         return cfg[PROFESOR_ID] || null;
-    } catch(e) {
-        return null;
-    }
+    } catch(e) { return null; }
 }
 
 function calcularColor(horas, cfg) {
-    if (horas < cfg.min)      return '#e05252';
+    if (horas < cfg.min) return '#e05252';
     if (horas < cfg.objetivo) return '#f7841a';
-    if (horas <= cfg.max)     return '#2cb67d';
+    if (horas <= cfg.max) return '#2cb67d';
     return '#7c3aed';
 }
 
 function calcularAviso(horas, cfg) {
-    if (horas < cfg.min)      return `🔴 Por debajo del mínimo (${cfg.min}h)`;
+    if (horas < cfg.min) return `🔴 Por debajo del mínimo (${cfg.min}h)`;
     if (horas < cfg.objetivo) return `⚠️ Faltan ${cfg.objetivo - horas}h para el objetivo`;
     if (horas === cfg.objetivo) return `✅ Objetivo cumplido exactamente`;
-    if (horas <= cfg.max)     return `✅ En rango (+${horas - cfg.objetivo}h sobre el objetivo)`;
+    if (horas <= cfg.max) return `✅ En rango (+${horas - cfg.objetivo}h sobre el objetivo)`;
     return `⚠️ Supera el máximo en +${horas - cfg.max}h`;
 }
 
@@ -371,47 +308,28 @@ function inicializarUI() {
     const barLabel = document.getElementById('horasBarLabel');
 
     if (cfg) {
-        // Mostrar tarjeta de límites
         const card = document.getElementById('limitesCard');
         card.style.display = 'block';
-
         document.getElementById('limValMin').textContent = cfg.min + 'h';
         document.getElementById('limValObj').textContent = cfg.objetivo + 'h';
         document.getElementById('limValMax').textContent = cfg.max + 'h';
-
-        const color  = calcularColor(TOTAL_HORAS, cfg);
-        const aviso  = calcularAviso(TOTAL_HORAS, cfg);
+        const color = calcularColor(TOTAL_HORAS, cfg);
+        const aviso = calcularAviso(TOTAL_HORAS, cfg);
         const pctBar = cfg.max > 0 ? Math.min(100, Math.round(TOTAL_HORAS / cfg.max * 100)) : 0;
-
         const limBar = document.getElementById('limBarFill');
-        limBar.style.width      = pctBar + '%';
+        limBar.style.width = pctBar + '%';
         limBar.style.background = color;
-
         document.getElementById('limAviso').innerHTML = `<span style="color:${color}">${aviso}</span>`;
-
-        // Barra principal también con color contextual
         if (barFill) {
             const pctMain = cfg.objetivo > 0 ? Math.min(100, Math.round(TOTAL_HORAS / cfg.objetivo * 100)) : 0;
-            barFill.style.width      = pctMain + '%';
+            barFill.style.width = pctMain + '%';
             barFill.style.background = color;
         }
-        if (barLabel) {
-            barLabel.innerHTML = `${TOTAL_HORAS}h / ${cfg.objetivo}h objetivo &nbsp;<span style="color:${color};font-size:.75rem;">${aviso}</span>`;
-        }
-    } else {
-        // Sin config: barra simple con 20h como referencia
-        const pct = Math.min(100, Math.round(TOTAL_HORAS / 20 * 100));
-        if (barFill) {
-            barFill.style.width      = pct + '%';
-            barFill.style.background = TOTAL_HORAS > 20 ? '#e05252' : '#f7841a';
-        }
-        if (barLabel) {
-            barLabel.textContent = `${TOTAL_HORAS}h asignadas`;
-        }
+        if (barLabel) barLabel.innerHTML = `${TOTAL_HORAS}h / ${cfg.objetivo}h objetivo &nbsp;<span style="color:${color};font-size:.75rem;">${aviso}</span>`;
     }
 }
 
-// ── Exportar PDF con jsPDF ─────────────────────────────────────────────────
+// EXPORTAR PDF CON PLANTILLA OFICIAL CORRECTA
 async function exportarPDF() {
     const btn = document.getElementById('btnExportarPDF');
     btn.classList.add('loading');
@@ -420,211 +338,181 @@ async function exportarPDF() {
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-        const W = 210;  // ancho A4
-        const MARGIN = 20;
-        const ACCENT  = [227, 95, 31];   // #e35f1f
-        const DARK    = [26, 26, 46];    // #1a1a2e
-        const LIGHT   = [244, 241, 235]; // #f4f1eb
-        const MUTED   = [119, 119, 119];
-        const SUCCESS = [44, 182, 125];
-        const DANGER  = [224, 82, 82];
-        const PURPLE  = [124, 58, 237];
-
-        // ── Cabecera ──────────────────────────────────────────────────────
-        // Fondo oscuro superior
-        doc.setFillColor(...DARK);
-        doc.rect(0, 0, W, 28, 'F');
-
-        // Logo / título
+        
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 15;
+        let y = 20;
+        
+        const COLOR_NARANJA = [227, 95, 31];
+        const COLOR_OSCURO = [26, 26, 46];
+        const COLOR_GRIS = [100, 100, 100];
+        
+        // ==================== TÍTULO ====================
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.setTextColor(255, 255, 255);
-        doc.text('Ciudad Escolar', MARGIN, 13);
-
-        doc.setTextColor(...ACCENT);
-        doc.text(' FP', MARGIN + doc.getTextWidth('Ciudad Escolar'), 13);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(180, 180, 180);
-        doc.text('Asignación de Módulos — Documento oficial', MARGIN, 20);
-
-        // Fecha generación (derecha)
-        const fechaHoy = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(`Generado: ${fechaHoy}`, W - MARGIN, 20, { align: 'right' });
-
-        // ── Datos del profesor ────────────────────────────────────────────
-        let y = 38;
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(20);
-        doc.setTextColor(...DARK);
-        doc.text('Asignación de Módulos', MARGIN, y);
-        y += 9;
-
-        // Línea separadora accent
-        doc.setDrawColor(...ACCENT);
-        doc.setLineWidth(0.8);
-        doc.line(MARGIN, y, W - MARGIN, y);
-        y += 8;
-
-        // Ficha datos
-        const fichaData = [
-            ['Profesor', PROFESOR_NOMBRE],
-            ['Fecha',    fechaHoy],
-        ];
-        if (PROFESOR_ESPECIALIDAD) fichaData.push(['Especialidad', PROFESOR_ESPECIALIDAD]);
-
-        fichaData.forEach(([etiqueta, valor]) => {
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(8);
-            doc.setTextColor(...MUTED);
-            doc.text(etiqueta.toUpperCase(), MARGIN, y);
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-            doc.setTextColor(...DARK);
-            doc.text(valor || '—', MARGIN, y + 5);
-            y += 13;
-        });
-
-        // ── Límites (si existen) ──────────────────────────────────────────
-        const cfg = cargarLimites();
-        if (cfg) {
-            y += 2;
-            doc.setFillColor(...LIGHT);
-            doc.roundedRect(MARGIN, y, W - MARGIN * 2, 22, 3, 3, 'F');
-
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(7);
-            doc.setTextColor(...MUTED);
-            doc.text('LÍMITES DE HORAS ESTABLECIDOS POR EL ADMINISTRADOR', MARGIN + 4, y + 6);
-
-            // Tres valores
-            const colW = (W - MARGIN * 2) / 3;
-
-            const limItems = [
-                { label: 'MÍNIMO',   val: cfg.min + 'h',      color: DANGER },
-                { label: 'OBJETIVO', val: cfg.objetivo + 'h', color: SUCCESS },
-                { label: 'MÁXIMO',   val: cfg.max + 'h',      color: PURPLE },
-            ];
-            limItems.forEach((item, i) => {
-                const cx = MARGIN + colW * i + colW / 2;
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(14);
-                doc.setTextColor(...item.color);
-                doc.text(item.val, cx, y + 15, { align: 'center' });
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7);
-                doc.setTextColor(...MUTED);
-                doc.text(item.label, cx, y + 20, { align: 'center' });
-            });
-            y += 28;
-        }
-
-        // ── Total horas asignadas ─────────────────────────────────────────
-        y += 4;
-        doc.setFillColor(...DARK);
-        doc.roundedRect(MARGIN, y, W - MARGIN * 2, 18, 3, 3, 'F');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(170, 170, 170);
-        doc.text('HORAS SEMANALES ASIGNADAS', MARGIN + 6, y + 7);
-
         doc.setFontSize(18);
-        doc.setTextColor(...ACCENT);
-        doc.text(`${TOTAL_HORAS}h`, MARGIN + 6, y + 15);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(180, 180, 180);
-        doc.text(`${MODULOS_DATA.length} módulo${MODULOS_DATA.length !== 1 ? 's' : ''}`, W - MARGIN - 6, y + 15, { align: 'right' });
-
-        y += 26;
-
-        // ── Tabla de módulos ──────────────────────────────────────────────
+        doc.setTextColor(...COLOR_OSCURO);
+        doc.text('ASIGNACIÓN DE MÓDULOS POR PROFESOR', pageWidth / 2, y, { align: 'center' });
+        y += 8;
+        
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(...DARK);
-        doc.text('Módulos asignados', MARGIN, y);
-        y += 4;
-
-        const tableBody = MODULOS_DATA.map(m => [
-            m.grado || '-',
-            m.nombre_modulo || '-',
-            (m.horas || 0) + 'h',
-            m.categoria || '-'
-        ]);
-
-        // Fila de total
-        tableBody.push(['', 'TOTAL', `${TOTAL_HORAS}h`, '']);
-
+        doc.setFontSize(12);
+        doc.setTextColor(...COLOR_GRIS);
+        doc.text('CURSO 2025-2026', pageWidth / 2, y, { align: 'center' });
+        y += 15;
+        
+        // ==================== DATOS DEL PROFESOR ====================
+        const fechaHoy = new Date().toLocaleDateString('es-ES');
+        
         doc.autoTable({
             startY: y,
-            head: [['Ciclo', 'Módulo', 'Horas', 'Categoría']],
-            body: tableBody,
-            margin: { left: MARGIN, right: MARGIN },
-            styles: {
-                font: 'helvetica',
-                fontSize: 9,
-                cellPadding: 4,
-                textColor: [...DARK],
-                lineColor: [226, 223, 216],
-                lineWidth: 0.3,
-            },
-            headStyles: {
-                fillColor: [...DARK],
-                textColor: [255, 255, 255],
-                fontStyle: 'bold',
-                fontSize: 8,
-            },
-            alternateRowStyles: { fillColor: [250, 248, 245] },
-            // Última fila (total) en negrita
-            didParseCell: function(data) {
-                if (data.row.index === tableBody.length - 1) {
-                    data.cell.styles.fontStyle = 'bold';
-                    data.cell.styles.fillColor = [...LIGHT];
-                }
-            },
+            body: [
+                ['DEPARTAMENTO:', 'TECNOLOGÍA'],
+                ['PROFESOR:', PROFESOR_NOMBRE],
+                ['FECHA:', fechaHoy]
+            ],
+            theme: 'plain',
+            styles: { fontSize: 10, cellPadding: 5, lineColor: [0, 0, 0], lineWidth: 0.2 },
             columnStyles: {
-                0: { cellWidth: 28 },
-                2: { cellWidth: 18, halign: 'center' },
-                3: { cellWidth: 28, halign: 'center' },
+                0: { fontStyle: 'bold', textColor: COLOR_OSCURO, cellWidth: 45, fillColor: [245, 245, 245] },
+                1: { cellWidth: pageWidth - marginX * 2 - 45 }
             },
+            margin: { left: marginX, right: marginX },
+            tableWidth: 'auto'
         });
-
-        // ── Pie de página ────────────────────────────────────────────────
-        const pageH = doc.internal.pageSize.getHeight();
-        doc.setDrawColor(...LIGHT);
-        doc.setLineWidth(0.5);
-        doc.line(MARGIN, pageH - 14, W - MARGIN, pageH - 14);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(...MUTED);
-        doc.text(`Profesor: ${PROFESOR_NOMBRE}`, MARGIN, pageH - 8);
-        doc.text('Ciudad Escolar FP', W - MARGIN, pageH - 8, { align: 'right' });
-
-        // ── Guardar ────────────────────────────────────────────────────────
-        const nombreArchivo = `Modulos_${PROFESOR_NOMBRE.replace(/\s+/g, '_')}_${fechaHoy.replace(/\//g, '-')}.pdf`;
+        
+        y = doc.lastAutoTable.finalY + 12;
+        
+        // ==================== SECCIÓN DOCENCIA ====================
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(...COLOR_OSCURO);
+        doc.text('DOCENCIA', marginX, y);
+        y += 3;
+        doc.setDrawColor(...COLOR_NARANJA);
+        doc.setLineWidth(0.6);
+        doc.line(marginX, y, pageWidth - marginX, y);
+        y += 8;
+        
+        // ==================== TABLA DE MÓDULOS ====================
+        const tableBody = [];
+        let horasTotales = 0;
+        let contador = 1;
+        
+        for (const mod of MODULOS_DATA) {
+            const horas = parseInt(mod.horas) || 0;
+            horasTotales += horas;
+            
+            let clave = '-';
+            const nombreUpper = (mod.nombre_modulo || '').toUpperCase();
+            if (nombreUpper.includes('PS')) clave = 'PS';
+            else if (nombreUpper.includes('PT')) clave = 'PT';
+            else if ((mod.categoria || '').toUpperCase() === 'SAI') clave = 'SAI';
+            else if ((mod.categoria || '').toUpperCase() === 'INF') clave = 'INF';
+            
+            tableBody.push([
+                `FP${String(contador).padStart(2, '0')}`,
+                mod.nombre_modulo || '-',
+                clave,
+                `${horas}h`
+            ]);
+            contador++;
+        }
+        
+        doc.autoTable({
+            startY: y,
+            head: [['CÓDIGO', 'MÓDULO A IMPARTIR', 'CLAVE MÓDULO (*)', 'HORAS / SEM.']],
+            body: tableBody,
+            theme: 'grid',
+            styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
+            headStyles: { fillColor: COLOR_OSCURO, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+            alternateRowStyles: { fillColor: [250, 250, 250] },
+            columnStyles: {
+                0: { cellWidth: 25, halign: 'center' },
+                1: { cellWidth: 80 },
+                2: { cellWidth: 30, halign: 'center' },
+                3: { cellWidth: 30, halign: 'center' }
+            },
+            margin: { left: marginX, right: marginX }
+        });
+        
+        y = doc.lastAutoTable.finalY + 12;
+        
+        // ==================== OTROS CARGOS ====================
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(...COLOR_OSCURO);
+        doc.text('OTROS CARGOS O ACTIVIDADES LECTIVAS', marginX, y);
+        y += 3;
+        doc.setDrawColor(...COLOR_NARANJA);
+        doc.line(marginX, y, pageWidth - marginX, y);
+        y += 6;
+        
+        // Líneas para otros cargos
+        for (let i = 0; i < 4; i++) {
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.2);
+            doc.line(marginX, y + 5, pageWidth - marginX, y + 5);
+            y += 8;
+        }
+        y += 8;
+        
+        // ==================== TOTAL HORAS ====================
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...COLOR_OSCURO);
+        doc.setFillColor(245, 245, 245);
+        
+        const totalY = y;
+        doc.rect(marginX, totalY, 130, 12, 'FD');
+        doc.text('Nº TOTAL DE HORAS LECTIVAS (docencia, cargos y otras actividades)', marginX + 3, totalY + 8);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(...COLOR_NARANJA);
+        doc.rect(marginX + 130, totalY, pageWidth - marginX * 2 - 130, 12, 'FD');
+        doc.text(`${horasTotales} horas`, marginX + 135, totalY + 8);
+        y = totalY + 16;
+        
+        // ==================== FIRMAS ====================
+        const pageHeight = doc.internal.pageSize.getHeight();
+        let yFooter = pageHeight - 28;
+        
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.3);
+        doc.line(marginX, yFooter, pageWidth - marginX, yFooter);
+        yFooter += 6;
+        
+        doc.setFont('helvetica', '');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Firma del Jefe/a de Departamento', marginX + 55, yFooter, { align: 'center' });
+        doc.text('Firma del Profesor/a', pageWidth - marginX - 45, yFooter, { align: 'center' });
+        yFooter += 8;
+        
+        doc.line(marginX + 20, yFooter, marginX + 90, yFooter);
+        doc.line(pageWidth - marginX - 90, yFooter, pageWidth - marginX - 20, yFooter);
+        yFooter += 8;
+        
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(7);
+        doc.setTextColor(...COLOR_GRIS);
+        doc.text('(*) Es indispensable rellenar con las claves recogidas en el documento entregado al Jefe/a de Departamento por Jefatura de Estudios.', marginX, yFooter);
+        
+        // ==================== GUARDAR ====================
+        const nombreArchivo = `Asignacion_Modulos_${PROFESOR_NOMBRE.replace(/\s+/g, '_')}_${fechaHoy.replace(/\//g, '-')}.pdf`;
         doc.save(nombreArchivo);
-
+        
     } catch(err) {
-        console.error('Error al generar PDF:', err);
-        alert('Error al generar el PDF. Por favor, inténtalo de nuevo.');
+        console.error('Error:', err);
+        alert('Error al generar el PDF: ' + err.message);
     } finally {
         btn.classList.remove('loading');
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Exportar PDF`;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> Exportar PDF`;
     }
 }
 
-// ── Arrancar ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', inicializarUI);
 </script>
-
 </body>
 </html>
+
