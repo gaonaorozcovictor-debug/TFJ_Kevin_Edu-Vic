@@ -67,7 +67,7 @@
   .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dark); }
   .btn-outline:hover { background: var(--light); }
 
-  .page { max-width: 1400px; margin: 0 auto; padding: 28px 20px; }
+  .page { max-width: 1600px; margin: 0 auto; padding: 28px 20px; }
   .page-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 20px; }
 
   .alert { padding: 12px 16px; border-radius: var(--radius); font-size: .875rem; margin-bottom: 16px; border-left: 4px solid; }
@@ -134,9 +134,10 @@
   .horas-badge-large span:first-child { font-size: .7rem; opacity: .8; text-transform: uppercase; letter-spacing: .05em; }
   .horas-badge-large strong { font-size: 1.5rem; font-weight: 700; margin: 0 4px; }
 
-  .asign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  /* MODIFICADO: Grid con proporción 2:1 para dar más espacio a disponibles */
+  .asign-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
   @media (max-width: 900px) { .asign-grid { grid-template-columns: 1fr; } }
-  .col-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; height: calc(100vh - 380px); }
+  .col-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; height: calc(100vh - 380px); min-height: 550px; }
   .col-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: 600; }
   .search-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); }
   .search-wrap input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; }
@@ -251,9 +252,9 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
     <button id="btnMostrarTodos" class="btn btn-outline" onclick="toggleMostrarTodos()">📋 Mostrar todos los módulos</button>
   </div>
 
-  <!-- Panel configuración horas objetivo -->
-  <div class="horas-config-panel disabled" id="horasConfigPanel">
-    <span class="horas-config-title">🎯 Objetivo de horas para este profesor</span>
+  <!-- Panel configuración horas objetivo - AHORA GLOBAL PARA TODOS LOS PROFESORES -->
+  <div class="horas-config-panel" id="horasConfigPanel">
+    <span class="horas-config-title">🎯 Configuración GLOBAL de horas objetivo (todos los profesores)</span>
     <div class="horas-fields">
       <div class="horas-field minimo">
         <label>Mínimo 🔴</label>
@@ -268,7 +269,7 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') {
         <input type="number" id="horasMax" min="0" max="40" value="22" step="1">
       </div>
     </div>
-    <button class="btn-config" id="btnGuardarHoras" onclick="guardarConfigHoras()">Aplicar</button>
+    <button class="btn-config" id="btnGuardarHoras" onclick="guardarConfigHorasGlobal()">Aplicar a todos</button>
   </div>
 
   <!-- Columnas de asignación -->
@@ -326,9 +327,11 @@ let categoriaProfesor = '';
 let modulosAsignados = [];
 let filtroCategoriaActivo = null;
 let mostrarTodosModulos = false;
-let horasConfig = {};
 
-const STORAGE_KEY = 'horasConfigProfesor';
+// Configuración GLOBAL de horas (para todos los profesores)
+let horasConfigGlobal = { min: 18, objetivo: 20, max: 22 };
+
+const STORAGE_KEY = 'horasConfigGlobal';
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -355,26 +358,24 @@ function inicializarModulos() {
 function cargarConfigStorage() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) horasConfig = JSON.parse(stored);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            horasConfigGlobal = { ...horasConfigGlobal, ...parsed };
+        }
     } catch(e) {
         console.error('Error loading config:', e);
     }
+    // Actualizar inputs con valores cargados
+    document.getElementById('horasMin').value = horasConfigGlobal.min;
+    document.getElementById('horasObjetivo').value = horasConfigGlobal.objetivo;
+    document.getElementById('horasMax').value = horasConfigGlobal.max;
 }
 
 function guardarConfigStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(horasConfig));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(horasConfigGlobal));
 }
 
-function getHorasConfig(profesorId) {
-    return horasConfig[profesorId] || { min: 18, objetivo: 20, max: 22 };
-}
-
-function guardarConfigHoras() {
-    if (profesorActual === 0) {
-        mostrarToast('Selecciona un profesor primero', 'warn');
-        return;
-    }
-    
+function guardarConfigHorasGlobal() {
     const min = parseInt(document.getElementById('horasMin').value) || 18;
     const objetivo = parseInt(document.getElementById('horasObjetivo').value) || 20;
     const max = parseInt(document.getElementById('horasMax').value) || 22;
@@ -384,44 +385,37 @@ function guardarConfigHoras() {
         return;
     }
     
-    horasConfig[profesorActual] = { min, objetivo, max };
+    horasConfigGlobal = { min, objetivo, max };
     guardarConfigStorage();
+    
+    // Actualizar resumen completo
     actualizarResumenHorasLocal();
     
     const btn = document.getElementById('btnGuardarHoras');
     const originalText = btn.textContent;
-    btn.textContent = '✅ Aplicado';
+    btn.textContent = '✅ Aplicado a todos';
     btn.classList.add('saved');
     setTimeout(() => {
         btn.textContent = originalText;
         btn.classList.remove('saved');
     }, 1500);
-    mostrarToast(`Configuración guardada: min ${min} / obj ${objetivo} / max ${max}`, 'ok');
+    mostrarToast(`Configuración global aplicada: min ${min} / obj ${objetivo} / max ${max}`, 'ok');
 }
 
-function actualizarPanelConfig() {
-    const panel = document.getElementById('horasConfigPanel');
-    if (profesorActual === 0 || !panel) {
-        if (panel) panel.classList.add('disabled');
-        return;
-    }
-    panel.classList.remove('disabled');
-    const cfg = getHorasConfig(profesorActual);
-    document.getElementById('horasMin').value = cfg.min;
-    document.getElementById('horasObjetivo').value = cfg.objetivo;
-    document.getElementById('horasMax').value = cfg.max;
+function getHorasConfig() {
+    return horasConfigGlobal;
 }
 
-function calcularColorPorHoras(horas, profesorId) {
-    const cfg = getHorasConfig(profesorId);
+function calcularColorPorHoras(horas) {
+    const cfg = getHorasConfig();
     if (horas < cfg.min) return '#e05252';
     if (horas < cfg.objetivo) return '#f7841a';
     if (horas <= cfg.max) return '#2cb67d';
     return '#7c3aed';
 }
 
-function obtenerTextoAviso(horas, profesorId) {
-    const cfg = getHorasConfig(profesorId);
+function obtenerTextoAviso(horas) {
+    const cfg = getHorasConfig();
     if (horas < cfg.min) return `🔴 Por debajo del mínimo (${cfg.min}h)`;
     if (horas < cfg.objetivo) return `⚠️ Faltan ${cfg.objetivo - horas}h para objetivo`;
     if (horas === cfg.objetivo) return `✅ Objetivo cumplido (${cfg.objetivo}h)`;
@@ -460,14 +454,15 @@ function actualizarResumenHorasLocal() {
         }
     });
     
+    const cfg = getHorasConfig();
+    
     // Actualizar resumen en la UI
     document.querySelectorAll('.prof-item[data-orden]').forEach(el => {
         const orden = parseInt(el.dataset.orden);
         const horas = horasPorProf[orden] || 0;
-        const cfg = getHorasConfig(orden);
         const pct = cfg.objetivo > 0 ? Math.min(100, Math.round(horas / cfg.objetivo * 100)) : 0;
-        const color = calcularColorPorHoras(horas, orden);
-        const aviso = obtenerTextoAviso(horas, orden);
+        const color = calcularColorPorHoras(horas);
+        const aviso = obtenerTextoAviso(horas);
         
         const fill = el.querySelector('.mini-bar-fill');
         const label = el.querySelector('.prof-horas-label');
@@ -532,7 +527,6 @@ async function cargarProfesor() {
             horasElement.innerHTML = '0';
             horasElement.style.color = '#e05252';
         }
-        actualizarPanelConfig();
         
         try {
             mostrarLoading(true);
@@ -558,7 +552,6 @@ async function cargarProfesor() {
     const opt = sel.options[sel.selectedIndex];
     if (nomSpan) nomSpan.innerHTML = opt.dataset.nombre || '';
     categoriaProfesor = (opt.dataset.categoria || '').toUpperCase();
-    actualizarPanelConfig();
     
     try {
         mostrarLoading(true);
@@ -580,7 +573,7 @@ async function cargarProfesor() {
         
         if (horasElement) {
             horasElement.innerHTML = horasAcum;
-            horasElement.style.color = calcularColorPorHoras(horasAcum, profesorActual);
+            horasElement.style.color = calcularColorPorHoras(horasAcum);
         }
         
         // Actualizar opción del select
@@ -670,7 +663,7 @@ function renderListasPorProfesor() {
     if (horasAsignadasLabel) horasAsignadasLabel.innerHTML = `${horasAcum}h`;
     if (horasElement) {
         horasElement.innerHTML = horasAcum;
-        horasElement.style.color = calcularColorPorHoras(horasAcum, profesorActual);
+        horasElement.style.color = calcularColorPorHoras(horasAcum);
     }
     
     attachDragEvents();
