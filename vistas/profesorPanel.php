@@ -275,14 +275,18 @@ const PROFESOR_NOMBRE = <?= json_encode($nombreProfesor) ?>;
 const PROFESOR_ESPECIALIDAD = <?= json_encode($especialidadProfesor) ?>;
 const TOTAL_HORAS = <?= (int)$totalHoras ?>;
 const MODULOS_DATA = <?= json_encode(array_values($modulos), JSON_UNESCAPED_UNICODE) ?>;
-const STORAGE_KEY = 'horasConfigProfesor';
+const STORAGE_KEY = 'horasConfigGlobal';
 
 function cargarLimites() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) return null;
         const cfg = JSON.parse(stored);
-        return cfg[PROFESOR_ID] || null;
+        // El admin guarda {min, objetivo, max} directamente — misma clave para todos
+        if (typeof cfg.min !== 'undefined' && typeof cfg.objetivo !== 'undefined' && typeof cfg.max !== 'undefined') {
+            return cfg;
+        }
+        return null;
     } catch(e) { return null; }
 }
 
