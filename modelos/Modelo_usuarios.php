@@ -1,26 +1,22 @@
 <?php
+require_once __DIR__ . '/../core/BaseDatos.php';
+
 class Modelo_usuarios {
 
-    private $conexion;
+    private PDO $db;
 
     public function __construct() {
-        $this->conexion = new mysqli("localhost", "root", "", "tfg_instituto");
-
-        if ($this->conexion->connect_error) {
-            die("Error de conexión: " . $this->conexion->connect_error);
-        }
+        $this->db = BaseDatos::conexion();
     }
 
-    public function obtenerPorUsuario($usuario){
+    public function obtenerPorUsuario(string $usuario): ?array {
+        $stmt = $this->db->prepare('SELECT * FROM usuarios WHERE usuario = ? LIMIT 1');
+        $stmt->execute([$usuario]);
+        return $stmt->fetch() ?: null;
+    }
 
-        $stmt = $this->conexion->prepare(
-            "SELECT * FROM usuarios WHERE usuario = ?"
-        );
-
-        $stmt->bind_param("s", $usuario);
-        $stmt->execute();
-
-        $resultado = $stmt->get_result();
-        return $resultado->fetch_assoc();
+    public function actualizarPassword(string $usuario, string $nuevoHash): void {
+        $stmt = $this->db->prepare('UPDATE usuarios SET password = ? WHERE usuario = ?');
+        $stmt->execute([$nuevoHash, $usuario]);
     }
 }

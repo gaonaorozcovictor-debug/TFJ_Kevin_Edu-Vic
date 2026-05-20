@@ -27,6 +27,7 @@ $sinAsignar = count(array_filter($modulos ?? [], fn($m) => empty($m['profesor_id
     <a href="/asignaciones/?vista=asignacion" class="btn btn-primary">Asignar módulos →</a>
     
     <button class="btn btn-ghost btn-darkmode" onclick="toggleDarkMode()" title="Cambiar a modo oscuro">🌙 Modo oscuro</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('modalPassword').classList.add('open')" title="Cambiar contraseña">🔑 Contraseña</button>
     <a href="/asignaciones/?vista=logout"     class="btn btn-ghost">Cerrar sesión</a>
   </div>
 </nav>
@@ -161,10 +162,54 @@ $sinAsignar = count(array_filter($modulos ?? [], fn($m) => empty($m['profesor_id
   </div>
 </div>
 
+<!-- Modal cambiar contraseña -->
+<div id="modalPassword" class="modal-overlay">
+  <div class="modal" style="max-width:460px;">
+    <h3>🔑 Cambiar contraseña</h3>
+    <p>Introduce tu contraseña actual y la nueva contraseña.</p>
+
+    <?php if (isset($_SESSION['error_pass'])): ?>
+      <div style="background:#fdf0f0;color:#a03030;border-left:4px solid #e05252;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:16px;">
+        <?= htmlspecialchars($_SESSION['error_pass']) ?>
+      </div>
+      <?php unset($_SESSION['error_pass']); ?>
+    <?php endif; ?>
+
+    <form method="POST" action="/asignaciones/controladores/Controlador_cambiarPassword.php">
+      <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#777;margin-bottom:5px;">Contraseña actual</label>
+          <input type="password" name="password_actual" required autocomplete="current-password"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2dfd8;border-radius:8px;font-family:inherit;font-size:.95rem;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#777;margin-bottom:5px;">Nueva contraseña</label>
+          <input type="password" name="password_nueva" required autocomplete="new-password"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2dfd8;border-radius:8px;font-family:inherit;font-size:.95rem;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#777;margin-bottom:5px;">Repetir nueva contraseña</label>
+          <input type="password" name="password_repetir" required autocomplete="new-password"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2dfd8;border-radius:8px;font-family:inherit;font-size:.95rem;outline:none;">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" style="background:#eee;color:#333;" onclick="document.getElementById('modalPassword').classList.remove('open')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar contraseña</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 function abrirModal(tipo) { document.getElementById(tipo === 'profesores' ? 'modalProfesores' : 'modalModulos').classList.add('open'); }
 function cerrarModal(tipo) { document.getElementById(tipo === 'profesores' ? 'modalProfesores' : 'modalModulos').classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+// Abrir modal si hubo error en el cambio de contraseña
+<?php if (isset($_SESSION['error_pass'])): ?>
+document.getElementById('modalPassword').classList.add('open');
+<?php endif; ?>
 </script>
 </body>
 </html>
