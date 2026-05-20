@@ -57,10 +57,6 @@ switch ($vista) {
         require __DIR__ . '/vistas/profesorPanel.php';
         break;
 
-    case 'plantillaPDF':
-        require __DIR__ . '/controladores/Controlador_plantillaPDF.php';
-        break;
-
     case 'logout':
         session_unset();
         session_destroy();
