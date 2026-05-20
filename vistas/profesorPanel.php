@@ -6,66 +6,9 @@
 <title>Mis módulos — Asignaciones FP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --accent: #e35f1f; --accent2: #f7841a;
-    --dark: #1a1a2e; --light: #f4f1eb;
-    --white: #fff; --muted: #777; --border: #e2dfd8;
-    --ok: #0d5c35; --range: #1ea360; --warn: #e8720a; --bad: #d42b2b;
-    --radius: 12px;
-  }
-  body { font-family: 'DM Sans', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; }
-
-  .navbar { background: var(--dark); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
-  .navbar-brand { font-family: 'DM Serif Display', serif; color: #fff; font-size: 1.1rem; }
-  .navbar-brand span { color: var(--accent2); }
-  .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 500; transition: all .2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-  .btn-ghost { background: rgba(255,255,255,.08); color: #fff; }
-  .btn-ghost:hover { background: rgba(255,255,255,.15); }
-
-  .page { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
-  .welcome { margin-bottom: 28px; }
-  .welcome h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; }
-  .welcome p { color: var(--muted); margin-top: 6px; }
-
-  /* ── Tarjeta de horas con color dinámico ── */
-  .horas-card { background: var(--dark); color: #fff; border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
-  .horas-label { font-size: .85rem; color: #aaa; text-transform: uppercase; letter-spacing: .05em; }
-  .horas-num   { font-family: 'DM Serif Display', serif; font-size: 3rem; line-height: 1; }
-  .horas-desc  { font-size: .875rem; color: #bbb; margin-top: 4px; }
-  .horas-bar-wrap { flex: 1; min-width: 200px; max-width: 320px; }
-  .horas-bar-bg   { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; overflow: hidden; }
-  .horas-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease, background .4s ease; }
-
-  /* ── Leyenda de colores ── */
-  .leyenda-colores { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; padding: 12px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); font-size: .78rem; }
-  .leyenda-item { display: flex; align-items: center; gap: 6px; font-weight: 500; }
-  .leyenda-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-  .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
-  .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: .95rem; }
-  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
-
-  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-  thead th { background: var(--light); padding: 10px 16px; text-align: left; font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  tbody tr { border-top: 1px solid var(--border); transition: background .15s; }
-  tbody tr:hover { background: #faf8f5; }
-  tbody td { padding: 12px 16px; }
-  tfoot td { padding: 12px 16px; background: var(--light); font-weight: 600; }
-
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .72rem; font-weight: 600; }
-  .badge-gray   { background: #f0f0f0; color: #555; }
-  .badge-purple { background: #ede9fb; color: #6b3fa0; }
-
-  .actions-bar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-  .btn-pdf { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; transition: background .2s; }
-  .btn-pdf:hover { background: #c94e0e; }
-  .btn-pdf.loading { opacity: .6; pointer-events: none; }
-
-  .estado-aviso { font-size: .8rem; margin-top: 6px; font-weight: 500; }
-</style>
+<link rel="stylesheet" href="/asignaciones/vistas/estilos/profesor.css">
+<link rel="stylesheet" href="/asignaciones/vistas/estilos/darkmode.css">
+<script src="/asignaciones/vistas/estilos/darkmode.js"></script>
 </head>
 <body>
 
@@ -80,7 +23,9 @@ $especialidadProfesor = $_SESSION['categoria'] ?? '';
 
 <nav class="navbar">
   <div class="navbar-brand">Ciudad Escolar <span>FP</span></div>
-  <a href="/asignaciones/?vista=logout" class="btn btn-ghost">Cerrar sesión</a>
+  
+    <button class="btn btn-ghost btn-darkmode" onclick="toggleDarkMode()" title="Cambiar a modo oscuro">🌙 Modo oscuro</button>
+    <a href="/asignaciones/?vista=logout" class="btn btn-ghost">Cerrar sesión</a>
 </nav>
 
 <div class="page">
@@ -125,11 +70,17 @@ $especialidadProfesor = $_SESSION['categoria'] ?? '';
   </div>
 
   <div class="card">
-    <div class="card-header">📋 Módulos asignados</div>
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+      <span>📋 Módulos asignados</span>
+      <?php if (!empty($modulos)): ?>
+      <input type="text" id="buscadorModulos" placeholder="Buscar módulo..." oninput="filtrarTabla()"
+        style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none;width:220px;">
+      <?php endif; ?>
+    </div>
     <?php if (empty($modulos)): ?>
       <div class="empty-state"><div class="icon">📭</div><p>No tienes módulos asignados todavía.</p></div>
     <?php else: ?>
-      <table>
+      <table id="tablaModulos">
         <thead><tr><th>Ciclo</th><th>Módulo</th><th>Horas</th><th>Categoría</th></tr></thead>
         <tbody>
           <?php foreach ($modulos as $m): ?>
@@ -143,6 +94,7 @@ $especialidadProfesor = $_SESSION['categoria'] ?? '';
         </tbody>
         <tfoot><tr><td colspan="2">Total</td><td><?= $totalHoras ?>h</td><td></td></tr></tfoot>
       </table>
+      <div id="sinResultados" style="display:none;text-align:center;padding:32px;color:var(--muted);">No se encontraron módulos.</div>
     <?php endif; ?>
   </div>
 </div>
@@ -203,72 +155,228 @@ function inicializarUI() {
   if (avisoEl) { avisoEl.innerHTML = `<span style="color:${color}">${aviso}</span>`; }
 }
 
-// ── PDF ─────────────────────────────────────────────────────────────
+function filtrarTabla() {
+  const busq = document.getElementById('buscadorModulos')?.value.toLowerCase() || '';
+  const filas = document.querySelectorAll('#tablaModulos tbody tr');
+  let visibles = 0;
+  filas.forEach(fila => {
+    const texto = fila.textContent.toLowerCase();
+    const mostrar = texto.includes(busq);
+    fila.style.display = mostrar ? '' : 'none';
+    if (mostrar) visibles++;
+  });
+  const sinRes = document.getElementById('sinResultados');
+  if (sinRes) sinRes.style.display = visibles === 0 ? 'block' : 'none';
+}
+
+// ── Helpers PDF ───────────────────────────────────────────────────────
+// Palabras clave que indican que un módulo va a "Otros cargos"
+const OTROS_CARGOS_KEYWORDS = ['tutoria','tutoría','tutor','guardia','coordinacion','coordinación','formacion en centros','fct','empresa'];
+
+function esOtroCargo(nombre) {
+  const n = (nombre||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  return OTROS_CARGOS_KEYWORDS.some(k => n.includes(k));
+}
+
+function getClave(m) {
+  const n = (m.nombre_modulo||'').toUpperCase();
+  const c = (m.categoria||'').toUpperCase();
+  if (n.includes('PS') || c.includes('PS')) return 'PS';
+  if (n.includes('PT') || c.includes('PT')) return 'PT';
+  if (c === 'SAI') return 'SAI';
+  if (c === 'INF') return 'INF';
+  return '-';
+}
+
+function seccionHeader(doc, texto, y, W, mX) {
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(26,26,46);
+  doc.text(texto, mX, y); y += 2;
+  doc.setDrawColor(26,26,46); doc.setLineWidth(0.4); doc.line(mX, y, W-mX, y);
+  return y + 5;
+}
+
+function firmasYNota(doc, W, mX) {
+  // Siempre al final de la ÚLTIMA página
+  const pH = doc.internal.pageSize.getHeight();
+  const yF = pH - 32;
+  doc.setDrawColor(180,180,180); doc.setLineWidth(0.3); doc.line(mX, yF, W-mX, yF);
+  doc.setFont('helvetica',''); doc.setFontSize(9); doc.setTextColor(0,0,0);
+  doc.text('Firma del Jefe/a de Departamento', mX + 45, yF + 6, {align:'center'});
+  doc.text('Firma del Profesor/a', W - mX - 40, yF + 6, {align:'center'});
+  doc.line(mX + 5,  yF + 16, mX + 85,  yF + 16);
+  doc.line(W-mX-85, yF + 16, W-mX-5,   yF + 16);
+  doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(120,120,120);
+  doc.text('(*) Es indispensable rellenar con las claves recogidas en el documento entregado al Jefe/a de Departamento por Jefatura de Estudios.', mX, yF + 24, {maxWidth: W - mX*2});
+}
+
+// ── PDF principal ─────────────────────────────────────────────────────
 async function exportarPDF() {
   const btn = document.getElementById('btnExportarPDF');
   btn.classList.add('loading'); btn.textContent = 'Generando PDF…';
+
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const W = doc.internal.pageSize.getWidth(), mX = 15;
-    let y = 20;
+    const W  = doc.internal.pageSize.getWidth();   // 210mm
+    const mX = 14;
+    let y = 14;
 
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(26,26,46);
-    doc.text('ASIGNACIÓN DE MÓDULOS POR PROFESOR', W/2, y, {align:'center'}); y+=8;
-    doc.setFontSize(12); doc.setTextColor(100,100,100);
-    doc.text('CURSO 2025-2026', W/2, y, {align:'center'}); y+=15;
-
-    const fechaHoy = new Date().toLocaleDateString('es-ES');
-    doc.autoTable({ startY:y, body:[['DEPARTAMENTO:','TECNOLOGÍA'],['PROFESOR:',PROFESOR_NOMBRE],['FECHA:',fechaHoy]], theme:'plain',
-      styles:{fontSize:10,cellPadding:5,lineColor:[0,0,0],lineWidth:0.2},
-      columnStyles:{0:{fontStyle:'bold',textColor:[26,26,46],cellWidth:45,fillColor:[245,245,245]},1:{cellWidth:W-mX*2-45}},
-      margin:{left:mX,right:mX} });
-    y = doc.lastAutoTable.finalY + 12;
-
+    // ── 1. CABECERA IES ───────────────────────────────────────────────
+    // Bloque izquierdo: nombre centro
     doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,26,46);
-    doc.text('DOCENCIA', mX, y); y+=3;
-    doc.setDrawColor(227,95,31); doc.setLineWidth(0.6); doc.line(mX, y, W-mX, y); y+=8;
+    doc.text('I.E.S. CIUDAD ESCOLAR', mX, y);
+    // Código centro alineado a la derecha
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+    doc.text('Código Centro: 28022724', W - mX, y, {align:'right'});
+    y += 5;
+    doc.setFontSize(7.5);
+    doc.text('Ctra. Colmenar Viejo, Km. 12,800 - 28049 Madrid  |  JEFATURA DE ESTUDIOS', mX, y);
+    doc.text('T: 91 734 12 44  |  ies.ciudadescolar.madrid@educa.madrid.org', mX, y+4);
+    y += 10;
+    // Línea separadora
+    doc.setDrawColor(26,26,46); doc.setLineWidth(0.6); doc.line(mX, y, W-mX, y);
+    y += 7;
 
-    let totalH = 0, c = 1;
-    const body = MODULOS_DATA.map(m => {
-      const h = parseInt(m.horas)||0; totalH+=h;
-      const n = (m.nombre_modulo||'').toUpperCase();
-      const clave = n.includes('PS')?'PS':n.includes('PT')?'PT':(m.categoria||'').toUpperCase()==='SAI'?'SAI':(m.categoria||'').toUpperCase()==='INF'?'INF':'-';
-      return [`FP${String(c++).padStart(2,'0')}`, m.nombre_modulo||'-', clave, `${h}h`];
+    // ── 2. TÍTULO ─────────────────────────────────────────────────────
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,26,46);
+    doc.text('ASIGNACIÓN DE MÓDULOS POR PROFESOR', W/2, y, {align:'center'});
+    y += 6;
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('CURSO 2025-2026', W/2, y, {align:'center'});
+    y += 8;
+
+    // ── 3. DATOS DEL PROFESOR ─────────────────────────────────────────
+    const fechaHoy = new Date().toLocaleDateString('es-ES');
+    const colLabel = 38, colVal = W - mX*2 - colLabel;
+    doc.autoTable({
+      startY: y,
+      body: [
+        ['DEPARTAMENTO:', PROFESOR_ESPECIALIDAD || 'TECNOLOGÍA'],
+        ['PROFESOR/A:',   PROFESOR_NOMBRE],
+        ['FECHA:',        fechaHoy]
+      ],
+      theme: 'grid',
+      styles: { fontSize: 9.5, cellPadding: {top:3,bottom:3,left:4,right:4}, lineColor:[180,180,180], lineWidth:0.3 },
+      columnStyles: {
+        0: { fontStyle:'bold', fillColor:[240,240,240], cellWidth: colLabel, textColor:[26,26,46] },
+        1: { cellWidth: colVal }
+      },
+      margin: { left: mX, right: mX }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    // ── 4. Separar módulos vs otros cargos ────────────────────────────
+    const modulos    = MODULOS_DATA.filter(m => !esOtroCargo(m.nombre_modulo));
+    const otrosCargos = MODULOS_DATA.filter(m =>  esOtroCargo(m.nombre_modulo));
+
+    // ── 5. SECCIÓN DOCENCIA ───────────────────────────────────────────
+    y = seccionHeader(doc, 'DOCENCIA', y, W, mX);
+
+    let totalHModulos = 0;
+    const bodyDocencia = modulos.map((m, i) => {
+      const h = parseInt(m.horas) || 0;
+      totalHModulos += h;
+      return [
+        `FP${String(i+1).padStart(2,'0')}`,
+        m.nombre_modulo || '-',
+        getClave(m),
+        `${h}`
+      ];
     });
 
-    doc.autoTable({ startY:y, head:[['CÓDIGO','MÓDULO A IMPARTIR','CLAVE (*)','H/SEM.']], body,
-      theme:'grid', styles:{fontSize:9,cellPadding:4},
-      headStyles:{fillColor:[26,26,46],textColor:[255,255,255],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[250,250,250]},
-      columnStyles:{0:{cellWidth:25,halign:'center'},1:{cellWidth:80},2:{cellWidth:25,halign:'center'},3:{cellWidth:30,halign:'center'}},
-      margin:{left:mX,right:mX} });
-    y = doc.lastAutoTable.finalY + 12;
+    // Añadir filas vacías si hay menos de 6 (como la plantilla original)
+    const minFilas = Math.max(6, bodyDocencia.length);
+    while (bodyDocencia.length < minFilas) bodyDocencia.push(['','','','']);
 
-    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,26,46);
-    doc.text('OTROS CARGOS O ACTIVIDADES LECTIVAS', mX, y); y+=3;
-    doc.setDrawColor(227,95,31); doc.line(mX, y, W-mX, y); y+=6;
-    for (let i=0;i<4;i++) { doc.setDrawColor(200,200,200); doc.setLineWidth(0.2); doc.line(mX,y+5,W-mX,y+5); y+=8; }
-    y+=8;
+    doc.autoTable({
+      startY: y,
+      head: [['CÓDIGO\nCICLO FORMATIVO (*)', 'MÓDULO A IMPARTIR', 'CLAVE\nMÓDULO (*)', 'HORAS\n/ SEM.']],
+      body: bodyDocencia,
+      theme: 'grid',
+      styles: { fontSize: 8.5, cellPadding: {top:3,bottom:3,left:3,right:3}, lineColor:[180,180,180], lineWidth:0.3, valign:'middle' },
+      headStyles: { fillColor:[26,26,46], textColor:[255,255,255], fontStyle:'bold', fontSize:8, halign:'center', valign:'middle' },
+      columnStyles: {
+        0: { cellWidth: 38, halign:'center' },
+        1: { cellWidth: W - mX*2 - 38 - 28 - 22 },
+        2: { cellWidth: 28, halign:'center' },
+        3: { cellWidth: 22, halign:'center' }
+      },
+      margin: { left: mX, right: mX },
+      // Si hay muchos módulos, continúa en siguiente página automáticamente
+      rowPageBreak: 'auto',
+      pageBreak: 'auto',
+      // Repetir cabecera en cada página
+      showHead: 'everyPage',
+      didDrawPage: (data) => {
+        // En páginas nuevas, no redibujar la cabecera del documento
+      }
+    });
+    y = doc.lastAutoTable.finalY + 8;
 
-    doc.setFillColor(245,245,245); doc.rect(mX,y,130,12,'FD');
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,26,46);
-    doc.text('Nº TOTAL DE HORAS LECTIVAS',mX+3,y+8);
-    doc.rect(mX+130,y,W-mX*2-130,12,'FD');
-    doc.setTextColor(227,95,31); doc.setFontSize(11);
-    doc.text(`${totalH} horas`,mX+135,y+8); y+=20;
+    // ── 6. SECCIÓN OTROS CARGOS ───────────────────────────────────────
+    // Comprueba si cabe en la página actual, si no salto de página
+    const pH = doc.internal.pageSize.getHeight();
+    const espacioNecesario = 50 + otrosCargos.length * 8;
+    if (y + espacioNecesario > pH - 40) {
+      doc.addPage();
+      y = 20;
+    }
 
-    const pH=doc.internal.pageSize.getHeight(), yF=pH-28;
-    doc.setDrawColor(180,180,180); doc.setLineWidth(0.3); doc.line(mX,yF,W-mX,yF);
-    doc.setFont('helvetica',''); doc.setFontSize(9); doc.setTextColor(0,0,0);
-    doc.text('Firma del Jefe/a de Departamento',mX+55,yF+6,{align:'center'});
-    doc.text('Firma del Profesor/a',W-mX-45,yF+6,{align:'center'});
-    doc.line(mX+20,yF+14,mX+90,yF+14); doc.line(W-mX-90,yF+14,W-mX-20,yF+14);
+    y = seccionHeader(doc, 'OTROS CARGOS O ACTIVIDADES LECTIVAS', y, W, mX);
+
+    let totalHOtros = 0;
+    const bodyOtros = otrosCargos.map(m => {
+      const h = parseInt(m.horas) || 0;
+      totalHOtros += h;
+      return [m.nombre_modulo || '-', `${h}`];
+    });
+    // Mínimo 4 filas vacías (como plantilla)
+    const minFilasOtros = Math.max(4, bodyOtros.length);
+    while (bodyOtros.length < minFilasOtros) bodyOtros.push(['','']);
+
+    doc.autoTable({
+      startY: y,
+      body: bodyOtros,
+      theme: 'grid',
+      styles: { fontSize: 8.5, cellPadding: {top:3,bottom:3,left:3,right:3}, lineColor:[180,180,180], lineWidth:0.3, minCellHeight:8 },
+      columnStyles: {
+        0: { cellWidth: W - mX*2 - 22 },
+        1: { cellWidth: 22, halign:'center' }
+      },
+      margin: { left: mX, right: mX }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // ── 7. TOTAL DE HORAS ─────────────────────────────────────────────
+    const totalFinal = totalHModulos + totalHOtros;
+    const anchoLabel = W - mX*2 - 30;
+
+    doc.autoTable({
+      startY: y,
+      body: [['Nº TOTAL DE HORAS LECTIVAS (docencia, cargos y otras actividades)', `${totalFinal}`]],
+      theme: 'grid',
+      styles: { fontSize: 8.5, cellPadding: {top:4,bottom:4,left:4,right:4}, lineColor:[26,26,46], lineWidth:0.4 },
+      bodyStyles: { fontStyle:'bold', fillColor:[240,240,240] },
+      columnStyles: {
+        0: { cellWidth: anchoLabel },
+        1: { cellWidth: 30, halign:'center', textColor:[26,26,46] }
+      },
+      margin: { left: mX, right: mX }
+    });
+
+    // ── 8. NOTA PIE ───────────────────────────────────────────────────
+    y = doc.lastAutoTable.finalY + 5;
     doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(100,100,100);
-    doc.text('(*) Claves recogidas en el documento entregado al Jefe/a de Departamento por Jefatura de Estudios.',mX,yF+22);
+    doc.text('(*) Es indispensable rellenar con las claves recogidas en el documento entregado al Jefe/a de Departamento por Jefatura de Estudios.', mX, y, {maxWidth: W - mX*2});
 
+    // ── 9. FIRMAS (fijadas al pie de la última página) ────────────────
+    firmasYNota(doc, W, mX);
+
+    // ── 10. GUARDAR ───────────────────────────────────────────────────
     doc.save(`Asignacion_${PROFESOR_NOMBRE.replace(/\s+/g,'_')}_${fechaHoy.replace(/\//g,'-')}.pdf`);
+
   } catch(err) {
+    console.error(err);
     alert('Error al generar el PDF: ' + err.message);
   } finally {
     btn.classList.remove('loading');

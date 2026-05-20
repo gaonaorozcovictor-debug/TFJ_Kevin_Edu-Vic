@@ -6,117 +6,9 @@
 <title>Asignar módulos — FP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --accent: #e35f1f; --accent2: #f7841a;
-    --dark: #1a1a2e; --light: #f4f1eb;
-    --white: #fff; --muted: #888; --border: #e2dfd8;
-    --ok: #0d5c35; --range: #1ea360; --warn: #e8720a; --bad: #d42b2b;
-    --purple: #d42b2b; --radius: 12px;
-  }
-  body { font-family: 'DM Sans', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; }
-
-  .navbar { background: var(--dark); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .navbar-brand { font-family: 'DM Serif Display', serif; color: #fff; font-size: 1.1rem; }
-  .navbar-brand span { color: var(--accent2); }
-  .navbar-nav { display: flex; gap: 8px; align-items: center; }
-
-  .btn { padding: 7px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: .85rem; font-weight: 500; transition: all .2s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #c9531a; }
-  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
-  .btn-ghost { background: rgba(255,255,255,.09); color: #fff; }
-  .btn-ghost:hover { background: rgba(255,255,255,.16); }
-  .btn-success { background: var(--range); color: #fff; }
-  .btn-success:hover { filter: brightness(1.1); }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--dark); }
-  .btn-outline:hover { background: var(--light); }
-
-  .page { max-width: 1600px; margin: 0 auto; padding: 28px 20px; }
-  .page-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 20px; }
-
-  .alert { padding: 12px 16px; border-radius: var(--radius); font-size: .875rem; margin-bottom: 16px; border-left: 4px solid; }
-  .alert-success { background: #edfaf4; color: #1f7a52; border-color: var(--range); }
-  .alert-error   { background: #fdf0f0; color: #a03030; border-color: var(--bad); }
-  .alert-warn    { background: #fff8e8; color: #8a5c00; border-color: var(--warn); }
-
-  /* Selector y filtros */
-  .selector-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
-  .filter-group { display: flex; gap: 12px; align-items: center; background: var(--light); padding: 6px 16px; border-radius: 40px; }
-  .filter-label { font-size: .75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .filter-btn { padding: 4px 12px; border-radius: 24px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: .8rem; transition: all .2s; }
-  .filter-btn.active { background: var(--dark); color: white; border-color: var(--dark); }
-  .selector-label { font-weight: 600; font-size: .85rem; text-transform: uppercase; color: var(--muted); }
-  .select-wrap { position: relative; flex: 1; min-width: 260px; max-width: 440px; }
-  .select-wrap::after { content: '▾'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
-  select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: .9rem; background: var(--white); outline: none; appearance: none; }
-  select:focus { border-color: var(--accent); }
-
-  /* Config horas */
-  .horas-config-panel { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
-  .horas-config-title { font-size: .75rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .05em; }
-  .horas-fields { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
-  .horas-field { display: flex; flex-direction: column; gap: 4px; }
-  .horas-field label { font-size: .7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-  .horas-field input { width: 80px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: .9rem; font-weight: 600; text-align: center; }
-  .horas-field.minimo input   { border-color: var(--bad); }
-  .horas-field.objetivo input { border-color: var(--ok); }
-  .horas-field.maximo input   { border-color: var(--bad); }
-  .btn-config { padding: 8px 20px; background: var(--dark); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background .2s; }
-  .btn-config:hover { background: #2a2a4a; }
-  .btn-config.saved { background: var(--range); }
-
-  .horas-badge-large { background: var(--dark); border-radius: 40px; padding: 4px 20px 4px 24px; display: flex; align-items: baseline; gap: 12px; font-weight: 500; color: white; }
-  .horas-badge-large span:first-child { font-size: .7rem; opacity: .8; text-transform: uppercase; letter-spacing: .05em; }
-  .horas-badge-large strong { font-size: 1.5rem; font-weight: 700; margin: 0 4px; transition: color .3s; }
-
-  /* Columnas */
-  .asign-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-  @media (max-width: 900px) { .asign-grid { grid-template-columns: 1fr; } }
-  .col-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; height: calc(100vh - 380px); min-height: 550px; }
-  .col-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: 600; }
-  .search-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); }
-  .search-wrap input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; }
-  .modulos-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-
-  .mod-card { border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 12px; border-left: 4px solid; background: #fff8f4; border-color: var(--accent2); font-size: .875rem; transition: all .1s; cursor: grab; }
-  .mod-card.dragging { opacity: 0.5; cursor: grabbing; }
-  .mod-card.tipo-pspt { background: #f3f0ff; border-color: var(--bad); }
-  .mod-card.ocupado { background: #fafafa; border-color: #ddd; opacity: 0.7; cursor: not-allowed; }
-  .mod-info { flex: 1; }
-  .mod-titulo { font-weight: 600; margin-bottom: 4px; }
-  .mod-detalle { display: flex; gap: 12px; font-size: .7rem; color: #666; flex-wrap: wrap; }
-  .mod-horas { font-weight: 700; color: var(--accent); white-space: nowrap; }
-  .badge-cat { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #e2e3e8; }
-  .badge-ocupante { background: #5b21b6; color: white; padding: 2px 8px; border-radius: 12px; font-size: .7rem; white-space: nowrap; }
-  .badge-especialidad { font-size: .65rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
-  .badge-sai { background: #dbeafe; color: #1e40af; }
-  .badge-inf { background: #fce7f3; color: #9d174d; }
-  .btn-asignar, .btn-quitar { border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .btn-asignar { background: var(--accent); color: white; }
-  .btn-quitar  { background: #fee2e2; color: var(--bad); }
-
-  /* Resumen con colores */
-  .resumen-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 28px; overflow: hidden; }
-  .resumen-header { padding: 18px 24px; border-bottom: 1px solid var(--border); font-weight: 600; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-  .leyenda-resumen { display: flex; gap: 14px; flex-wrap: wrap; margin-left: auto; }
-  .leyenda-item { display: flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 500; }
-  .leyenda-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .prof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-  .prof-item { padding: 16px 20px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-  .prof-nombre { font-weight: 600; margin-bottom: 2px; }
-  .prof-cat { font-size: .7rem; color: #888; margin-bottom: 8px; }
-  .mini-bar-bg { height: 7px; background: #eee; border-radius: 4px; overflow: hidden; margin: 6px 0; }
-  .mini-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
-  .prof-horas-label { font-size: .75rem; color: #666; font-weight: 500; line-height: 1.5; }
-
-  .save-bar { padding: 20px 0; display: flex; justify-content: flex-end; gap: 16px; }
-  #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 12px 24px; border-radius: 40px; opacity: 0; transition: opacity .3s; z-index: 1000; pointer-events: none; }
-  #toast.show { opacity: 1; }
-  .empty-list { padding: 32px; text-align: center; color: var(--muted); }
-  .loading { opacity: 0.6; pointer-events: none; }
-</style>
+<link rel="stylesheet" href="/asignaciones/vistas/estilos/asignarModulos.css">
+<link rel="stylesheet" href="/asignaciones/vistas/estilos/darkmode.css">
+<script src="/asignaciones/vistas/estilos/darkmode.js"></script>
 </head>
 <body>
 
@@ -128,8 +20,10 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') { header('Loca
 <nav class="navbar">
   <div class="navbar-brand">Ciudad Escolar <span>FP</span></div>
   <div class="navbar-nav">
-    <a href="/asignaciones/?vista=admin"  class="btn btn-ghost">← Panel admin</a>
-    <a href="/asignaciones/?vista=logout" class="btn btn-ghost">Cerrar sesión</a>
+    <div class="cambios-badge" id="cambiosBadge"><span class="cambios-dot"></span> Cambios sin guardar</div>
+    <a href="/asignaciones/?vista=admin"  class="btn btn-ghost" id="linkAdmin">← Panel admin</a>
+    <button class="btn btn-ghost btn-darkmode" onclick="toggleDarkMode()" title="Cambiar a modo oscuro">🌙 Modo oscuro</button>
+    <a href="/asignaciones/?vista=logout" class="btn btn-ghost" id="linkLogout">Cerrar sesión</a>
   </div>
 </nav>
 
@@ -174,9 +68,9 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') { header('Loca
   <div class="horas-config-panel">
     <span class="horas-config-title">🎯 Configuración global de horas objetivo</span>
     <div class="horas-fields">
-      <div class="horas-field minimo">  <label>Mínimo  🟠</label> <input type="number" id="horasMin" min="0" max="40" value="18" step="1"></div>
+      <div class="horas-field minimo">  <label>Mínimo 🔴</label> <input type="number" id="horasMin" min="0" max="40" value="18" step="1"></div>
       <div class="horas-field objetivo"><label>Objetivo ✅</label><input type="number" id="horasObjetivo" min="0" max="40" value="20" step="1"></div>
-      <div class="horas-field maximo"> <label>Máximo  🔴</label><input type="number" id="horasMax" min="0" max="40" value="22" step="1"></div>
+      <div class="horas-field maximo"> <label>Máximo 🟣</label><input type="number" id="horasMax" min="0" max="40" value="22" step="1"></div>
     </div>
     <button class="btn-config" id="btnGuardarHoras" onclick="guardarConfigGlobal()">Aplicar a todos</button>
   </div>
@@ -195,7 +89,8 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') { header('Loca
   </div>
 
   <div class="save-bar">
-    <button class="btn btn-primary" onclick="guardarAsignacion()">💾 Guardar cambios</button>
+    <div class="cambios-badge" id="cambiosBadge2"><span class="cambios-dot"></span> Cambios sin guardar</div>
+    <button class="btn btn-primary" onclick="pedirConfirmacion()">💾 Guardar cambios</button>
   </div>
 
   <!-- Resumen con leyenda de colores -->
@@ -223,6 +118,18 @@ if (!isset($_SESSION['usuario']) || $_SESSION['rol'] !== 'admin') { header('Loca
     </div>
   </div>
 </div>
+<!-- Modal confirmación guardar -->
+<div id="modalConfirmar" class="modal-overlay">
+  <div class="modal">
+    <h3>💾 Confirmar guardado</h3>
+    <p id="modalConfirmarTexto">¿Guardar los cambios del profesor seleccionado?</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="cerrarModalConfirmar()">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarGuardar()">Sí, guardar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -234,6 +141,7 @@ const STORAGE_KEY    = 'horasConfigGlobal';
 let modulosEstado = [], profesorActual = 0, categoriaProfesor = '';
 let modulosAsignados = [], filtroCategoriaActivo = null, mostrarTodosModulos = false;
 let horasCfg = { min:18, objetivo:20, max:22 };
+let hayCambios = false;
 
 // ── Sistema de colores ────────────────────────────────────────────────
 // Verde oscuro = objetivo exacto (óptimo)
@@ -258,7 +166,19 @@ function calcularAviso(h) {
 document.addEventListener('DOMContentLoaded', () => {
   cargarConfigStorage();
   modulosEstado = TODOS_MODULOS.map(m => ({...m, asignado_a_profe:false, asignado_a_otro:false}));
-  document.getElementById('selectProfesor').addEventListener('change', cargarProfesor);
+  document.getElementById('selectProfesor').addEventListener('change', () => {
+    if (hayCambios && !confirm('Tienes cambios sin guardar. ¿Cambiar de profesor igualmente?')) {
+      document.getElementById('selectProfesor').value = profesorActual;
+      return;
+    }
+    cargarProfesor();
+  });
+  // Interceptar navegación con cambios sin guardar
+  ['linkAdmin','linkLogout'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', e => {
+      if (hayCambios && !confirm('Tienes cambios sin guardar. ¿Salir igualmente?')) e.preventDefault();
+    });
+  });
   cargarProfesor();
   setupDragAndDrop();
 });
@@ -431,6 +351,9 @@ function actualizarEstadoLocal() {
     asignado_a_profe: modulosAsignados.includes(m.id),
     asignado_a_otro:  m.profesor_id!==null && m.profesor_id!==profesorActual && m.profesor_id!==0 && !modulosAsignados.includes(m.id)
   }));
+  hayCambios = true;
+  document.getElementById('cambiosBadge')?.classList.add('visible');
+  document.getElementById('cambiosBadge2')?.classList.add('visible');
   renderProfesor(); actualizarResumen();
 }
 
@@ -442,6 +365,17 @@ function toggleMostrarTodos() {
   btn.style.color      = mostrarTodosModulos?'white':'';
   if (profesorActual) renderProfesor();
 }
+
+// ── Confirmación guardar ──────────────────────────────────────────────
+function pedirConfirmacion() {
+  if (!profesorActual) { mostrarToast('Selecciona un profesor primero','warn'); return; }
+  const nom = document.getElementById('nomProfesor')?.textContent || 'este profesor';
+  const h   = document.getElementById('horasActuales')?.textContent || '0';
+  document.getElementById('modalConfirmarTexto').textContent = `¿Guardar los módulos de ${nom}? (${h}h asignadas)`;
+  document.getElementById('modalConfirmar').classList.add('open');
+}
+function cerrarModalConfirmar() { document.getElementById('modalConfirmar').classList.remove('open'); }
+function confirmarGuardar() { cerrarModalConfirmar(); guardarAsignacion(); }
 
 // ── Guardar ───────────────────────────────────────────────────────────
 async function guardarAsignacion() {
@@ -455,7 +389,12 @@ async function guardarAsignacion() {
     });
     const data = await res.json();
     mostrarToast(data.mensaje, data.supera_20?'warn':(data.ok?'ok':'error'));
-    if (data.ok) { await cargarProfesor(); actualizarResumen(); }
+    if (data.ok) {
+      hayCambios = false;
+      document.getElementById('cambiosBadge')?.classList.remove('visible');
+      document.getElementById('cambiosBadge2')?.classList.remove('visible');
+      await cargarProfesor(); actualizarResumen();
+    }
   } catch(e) { mostrarToast('Error de red','error'); }
   finally { if (btn) btn.disabled=false; }
 }

@@ -1,0 +1,96 @@
+/* ── Modo oscuro — se activa añadiendo clase "dark" al <html> ── */
+
+html.dark {
+  --light:  #0f0f1a;
+  --white:  #1a1a2e;
+  --border: #2e2e4a;
+  --muted:  #9391a4;
+  --dark:   #0a0a14;
+}
+
+/* Textos y fondos generales */
+html.dark body          { background: #0f0f1a; color: #e8e6f0; }
+html.dark .page-title,
+html.dark .welcome h1,
+html.dark .forms-title  { color: #e8e6f0; }
+
+/* Cards y contenedores blancos */
+html.dark .card,
+html.dark .stat-card,
+html.dark .selector-card,
+html.dark .horas-config-panel,
+html.dark .col-card,
+html.dark .resumen-card,
+html.dark .limites-card,
+html.dark .upload-zone,
+html.dark .modal,
+html.dark .forms-wrap    { background: #1a1a2e; border-color: #2e2e4a; }
+
+/* Tablas */
+html.dark thead th       { background: #12121f; color: #9391a4; }
+html.dark tbody tr:hover { background: #1f1f35; }
+html.dark tbody tr       { border-color: #2e2e4a; }
+html.dark tfoot td       { background: #12121f; color: #e8e6f0; }
+
+/* Inputs y selects */
+html.dark input[type="text"],
+html.dark input[type="password"],
+html.dark input[type="number"],
+html.dark select,
+html.dark .search-wrap input { background: #12121f; border-color: #2e2e4a; color: #e8e6f0; }
+html.dark input::placeholder  { color: #5a5870; }
+
+/* Módulos en las listas */
+html.dark .mod-card              { background: #1f1f35; border-color: #e8720a; }
+html.dark .mod-card.tipo-pspt    { background: #1e1535; border-color: #7c3aed; }
+html.dark .mod-card.ocupado      { background: #161622; border-color: #2e2e4a; }
+html.dark .mod-detalle           { color: #9391a4; }
+
+/* Badges y pills */
+html.dark .badge-gray            { background: #2e2e4a; color: #b0aec0; }
+html.dark .badge-orange          { background: #2a1a0a; color: #f7841a; }
+html.dark .badge-green           { background: #0a2018; color: #2cb67d; }
+html.dark .badge-cat             { background: #2e2e4a; color: #b0aec0; }
+html.dark .filter-group          { background: #12121f; }
+html.dark .filter-btn            { background: #1a1a2e; border-color: #2e2e4a; color: #b0aec0; }
+html.dark .filter-btn.active     { background: #e8e6f0; color: #0f0f1a; border-color: #e8e6f0; }
+
+/* Upload zone */
+html.dark .upload-zone           { border-color: #2e2e4a; }
+html.dark .upload-zone:hover     { background: #1f1f35; border-color: #e35f1f; }
+html.dark .upload-text           { color: #9391a4; }
+
+/* Alertas */
+html.dark .alert-success         { background: #0a2018; color: #2cb67d; }
+html.dark .alert-error           { background: #200a0a; color: #e05252; }
+html.dark .alert-warn            { background: #1f1200; color: #f7841a; }
+
+/* Leyenda y resumen */
+html.dark .leyenda-colores,
+html.dark .resumen-header        { background: #1a1a2e; border-color: #2e2e4a; color: #e8e6f0; }
+html.dark .prof-item             { border-color: #2e2e4a; }
+html.dark .prof-cat              { color: #9391a4; }
+html.dark .mini-bar-bg           { background: #2e2e4a; }
+
+/* Horas card (ya es oscura, solo ajustes) */
+html.dark .horas-card            { background: #12121f; }
+
+/* Modal overlay */
+html.dark .modal-overlay         { background: rgba(0,0,0,.7); }
+html.dark .modal h3              { color: #e8e6f0; }
+html.dark .btn-outline           { border-color: #2e2e4a; color: #e8e6f0; }
+html.dark .btn-outline:hover     { background: #2e2e4a; }
+
+/* Login hero (panel izquierdo, ya es oscuro) */
+html.dark .forms-inner .forms-subtitle { color: #9391a4; }
+html.dark .tabs                  { background: #12121f; }
+html.dark .tab-btn.active        { background: #1a1a2e; color: #e8e6f0; }
+html.dark .tab-btn               { color: #9391a4; }
+html.dark label                  { color: #9391a4; }
+
+/* Transición suave al cambiar modo */
+body, .card, .stat-card, .selector-card, .col-card,
+.horas-config-panel, .resumen-card, .modal,
+input, select, table, .mod-card {
+  transition: background .25s, border-color .25s, color .15s;
+}
