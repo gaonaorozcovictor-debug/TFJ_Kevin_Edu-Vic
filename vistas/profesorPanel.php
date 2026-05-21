@@ -25,8 +25,98 @@ $especialidadProfesor = $_SESSION['categoria'] ?? '';
   <div class="navbar-brand">Ciudad Escolar <span>FP</span></div>
   
     <button class="btn btn-ghost btn-darkmode" onclick="toggleDarkMode()" title="Cambiar a modo oscuro">🌙 Modo oscuro</button>
+    <button class="btn btn-ghost" onclick="abrirModalPassword()" title="Establecer o cambiar contraseña" style="display:flex;align-items:center;gap:6px;">
+      🔑 <?php
+        require_once __DIR__ . '/../modelos/Modelo_usuarios.php';
+        $__modeloU = new Modelo_usuarios();
+        echo $__modeloU->profesorTienePassword((int)$_SESSION['profesor_id']) ? 'Cambiar contraseña' : 'Añadir contraseña';
+      ?>
+    </button>
     <a href="/asignaciones/?vista=logout" class="btn btn-ghost">Cerrar sesión</a>
 </nav>
+
+<!-- ── Modal contraseña profesor ─────────────────────────────────────────── -->
+<div id="modalPassword" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;">
+  <div style="background:var(--surface,#fff);border-radius:16px;padding:36px 32px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative;">
+    <button onclick="cerrarModalPassword()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);" title="Cerrar">✕</button>
+    <h2 style="margin:0 0 6px;font-size:1.2rem;">
+      <?php echo $__modeloU->profesorTienePassword((int)$_SESSION['profesor_id']) ? '🔑 Cambiar contraseña' : '🔑 Añadir contraseña'; ?>
+    </h2>
+    <p style="color:var(--muted);font-size:.88rem;margin:0 0 24px;">
+      <?php if ($__modeloU->profesorTienePassword((int)$_SESSION['profesor_id'])): ?>
+        Introduce tu contraseña actual y después la nueva.
+      <?php else: ?>
+        Establece una contraseña para proteger tu acceso. A partir de ahora se te pedirá al iniciar sesión.
+      <?php endif; ?>
+    </p>
+
+    <?php if (isset($_SESSION['error_pass'])): ?>
+      <div style="background:#fee;border:1px solid #fcc;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#c00;font-size:.88rem;">
+        <?= htmlspecialchars($_SESSION['error_pass']) ?></div>
+      <?php unset($_SESSION['error_pass']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['mensaje'])): ?>
+      <div style="background:#efffef;border:1px solid #bde;border-radius:8px;padding:10px 14px;margin-bottom:16px;color:#1a6b45;font-size:.88rem;">
+        <?= htmlspecialchars($_SESSION['mensaje']) ?></div>
+      <?php unset($_SESSION['mensaje']); ?>
+    <?php endif; ?>
+
+    <form method="POST" action="/asignaciones/controladores/Controlador_setPasswordProfesor.php">
+
+      <?php if ($__modeloU->profesorTienePassword((int)$_SESSION['profesor_id'])): ?>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;">Contraseña actual</label>
+        <input type="password" name="password_actual" placeholder="••••••" required
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;box-sizing:border-box;">
+      </div>
+      <?php endif; ?>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;">Nueva contraseña</label>
+        <input type="password" name="password_nueva" id="pwNueva" placeholder="Mínimo 4 caracteres" required
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;box-sizing:border-box;">
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;">Repetir contraseña</label>
+        <input type="password" name="password_repetir" id="pwRepetir" placeholder="Repite la nueva contraseña" required
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;box-sizing:border-box;"
+          oninput="validarCoincidencia()">
+        <small id="pwMatch" style="font-size:.78rem;margin-top:4px;display:block;"></small>
+      </div>
+
+      <button type="submit"
+        style="width:100%;padding:11px;background:var(--accent,#6c63ff);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:.95rem;font-weight:600;cursor:pointer;">
+        Guardar contraseña
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModalPassword() {
+  document.getElementById('modalPassword').style.display = 'flex';
+}
+function cerrarModalPassword() {
+  document.getElementById('modalPassword').style.display = 'none';
+}
+// Cerrar al hacer clic fuera del cuadro
+document.getElementById('modalPassword').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalPassword();
+});
+function validarCoincidencia() {
+  const a = document.getElementById('pwNueva').value;
+  const b = document.getElementById('pwRepetir').value;
+  const el = document.getElementById('pwMatch');
+  if (!b) { el.textContent = ''; return; }
+  if (a === b) { el.textContent = '✅ Coinciden'; el.style.color = '#1a6b45'; }
+  else         { el.textContent = '❌ No coinciden'; el.style.color = '#c00'; }
+}
+<?php if (isset($_SESSION['_open_modal_password'])): unset($_SESSION['_open_modal_password']); ?>
+document.addEventListener('DOMContentLoaded', () => abrirModalPassword());
+<?php endif; ?>
+</script>
 
 <div class="page">
   <div class="welcome">

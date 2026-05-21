@@ -7,7 +7,7 @@ require_once __DIR__ . '/../modelos/Modelo_profesores.php';
 
 if (!defined('BASE_URL')) define('BASE_URL', '/asignaciones');
 
-// Login administrador
+// ── Login administrador ───────────────────────────────────────────────────────
 if (isset($_POST['login_admin'])) {
     $usuario  = trim($_POST['usuario']  ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -27,9 +27,10 @@ if (isset($_POST['login_admin'])) {
     exit();
 }
 
-// Login profesor
+// ── Login profesor ────────────────────────────────────────────────────────────
 if (isset($_POST['login_profesor'])) {
     $profesor_id = (int)($_POST['profesor_id'] ?? 0);
+    $password    = $_POST['password_profesor'] ?? '';
 
     if ($profesor_id <= 0) {
         $_SESSION['error'] = 'Selecciona un profesor.';
@@ -37,13 +38,35 @@ if (isset($_POST['login_profesor'])) {
         exit();
     }
 
-    $modelo   = new Modelo_profesores();
-    $profesor = $modelo->obtenerProfesorPorId($profesor_id);
+    $modeloProf = new Modelo_profesores();
+    $profesor   = $modeloProf->obtenerProfesorPorId($profesor_id);
 
     if (!$profesor) {
         $_SESSION['error'] = 'Profesor no encontrado.';
         header('Location: ' . BASE_URL . '/');
         exit();
+    }
+
+    $modeloUsuarios = new Modelo_usuarios();
+
+    // Asegurarse de que existe fila en usuarios para este profesor
+    // (puede no existir si nunca ha establecido contraseña)
+    $userProfesor = $modeloUsuarios->obtenerPorProfesorId($profesor_id);
+
+    if ($userProfesor && !empty($userProfesor['password'])) {
+        // Este profesor ya tiene contraseña → verificar
+        if (empty($password) || !password_verify($password, $userProfesor['password'])) {
+            $_SESSION['error'] = 'Contraseña incorrecta.';
+            header('Location: ' . BASE_URL . '/');
+            exit();
+        }
+    } else {
+        // Sin contraseña establecida → acceso libre, pero creamos fila si no existe
+        if (!$userProfesor) {
+            // Generar nombre de usuario único basado en el nombre del profesor
+            $nombreUsuario = 'prof_' . $profesor_id;
+            $modeloUsuarios->crearUsuarioProfesor($profesor_id, $nombreUsuario);
+        }
     }
 
     $_SESSION['usuario']     = $profesor_id;
@@ -56,6 +79,6 @@ if (isset($_POST['login_profesor'])) {
     exit();
 }
 
-// Acceso directo sin POST → redirigir al inicio
+// ── Acceso directo sin POST → redirigir al inicio ─────────────────────────────
 header('Location: ' . BASE_URL . '/');
 exit();

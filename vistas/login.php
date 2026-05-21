@@ -47,10 +47,12 @@
         <?php unset($_SESSION['mensaje']); ?>
       <?php endif; ?>
 
-      <!-- Tabs -->
+      <!-- Dark mode -->
       <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
         <button class="btn-darkmode" onclick="toggleDarkMode()" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.85rem;font-family:inherit;" title="Cambiar modo">🌙 Modo oscuro</button>
       </div>
+
+      <!-- Tabs -->
       <div class="tabs">
         <button class="tab-btn active" onclick="cambiarTab('admin', this)">Administrador</button>
         <button class="tab-btn"       onclick="cambiarTab('profesor', this)">Profesor</button>
@@ -73,11 +75,11 @@
 
       <!-- Tab Profesor -->
       <div id="panel-profesor" class="form-panel">
-        <form method="POST" action="/asignaciones/controladores/Controlador_login.php">
+        <form method="POST" action="/asignaciones/controladores/Controlador_login.php" id="formProfesor">
           <div class="form-group">
             <label for="profesor_id">Selecciona tu nombre</label>
             <div class="select-wrap">
-              <select id="profesor_id" name="profesor_id">
+              <select id="profesor_id" name="profesor_id" onchange="comprobarPasswordProfesor(this.value)">
                 <option value="">— Elige un profesor —</option>
                 <?php if (!empty($profesores)): ?>
                   <?php foreach ($profesores as $p): ?>
@@ -91,6 +93,14 @@
               </select>
             </div>
           </div>
+
+          <!-- Campo contraseña: oculto por defecto, se muestra si el profesor tiene password -->
+          <div class="form-group" id="campoPasswordProfesor" style="display:none;">
+            <label for="password_profesor">Contraseña</label>
+            <input type="password" id="password_profesor" name="password_profesor" placeholder="••••••" autocomplete="current-password">
+            <small style="color:var(--muted);font-size:.78rem;margin-top:4px;display:block;">Este profesor tiene contraseña establecida.</small>
+          </div>
+
           <button type="submit" name="login_profesor" class="btn-primary">Entrar como profesor →</button>
         </form>
       </div>
@@ -105,6 +115,32 @@ function cambiarTab(id, btn) {
   document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-' + id).classList.add('active');
+}
+
+function comprobarPasswordProfesor(profesorId) {
+  const campo = document.getElementById('campoPasswordProfesor');
+  const input = document.getElementById('password_profesor');
+
+  if (!profesorId) {
+    campo.style.display = 'none';
+    input.value = '';
+    return;
+  }
+
+  fetch('/asignaciones/controladores/Controlador_checkPasswordProfesor.php?profesor_id=' + profesorId)
+    .then(r => r.json())
+    .then(data => {
+      if (data.tienePassword) {
+        campo.style.display = 'block';
+        input.focus();
+      } else {
+        campo.style.display = 'none';
+        input.value = '';
+      }
+    })
+    .catch(() => {
+      campo.style.display = 'none';
+    });
 }
 </script>
 </body>
